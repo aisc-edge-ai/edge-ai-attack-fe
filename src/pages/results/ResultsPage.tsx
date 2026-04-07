@@ -1,10 +1,40 @@
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { Tabs, Tab, Tag } from '@blueprintjs/core';
+import { ResultSummaryTab } from './components/ResultSummaryTab';
+import { ResultAnalysisTab } from './components/ResultAnalysisTab';
+import type { AttackResult } from '@/types';
+
 export function ResultsPage() {
+  const { id } = useParams();
+  const [activeTab, setActiveTab] = useState(id ? 'analysis' : 'summary');
+  const [selectedResult, setSelectedResult] = useState<AttackResult | null>(null);
+
+  const handleViewAnalysis = (result: AttackResult) => {
+    setSelectedResult(result);
+    setActiveTab('analysis');
+  };
+
   return (
-    <div className="h-full flex items-center justify-center text-muted-foreground">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-2">모의 공격 결과</h2>
-        <p>Phase 4에서 구현 예정</p>
-      </div>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Tabs
+        id="results-tabs"
+        selectedTabId={activeTab}
+        onChange={(newTabId) => setActiveTab(newTabId as string)}
+        large
+      >
+        <Tab id="summary" title="공격 결과 요약" panel={
+          <ResultSummaryTab onViewAnalysis={handleViewAnalysis} />
+        } />
+        <Tab id="analysis" title={
+          <span>
+            상세 결과 분석
+            {selectedResult && <Tag intent="primary" minimal round style={{ marginLeft: 8 }}>선택됨</Tag>}
+          </span>
+        } panel={
+          <ResultAnalysisTab selectedResult={selectedResult} onGoBack={() => setActiveTab('summary')} />
+        } />
+      </Tabs>
     </div>
   );
 }

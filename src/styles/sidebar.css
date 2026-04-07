@@ -1,0 +1,199 @@
+/* ===========================
+   Sidebar Layout & Menu
+   Single source of truth for all sidebar styling.
+   =========================== */
+
+/* --- Base sidebar --- */
+.app-sidebar {
+  width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--bp-border);
+  background: var(--bp-bg-dark);
+  color: var(--bp-bg-light);
+  transition: width 0.2s ease;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.app-sidebar.collapsed {
+  width: var(--sidebar-width-collapsed);
+}
+
+/* --- Scrollbar --- */
+.app-sidebar ::-webkit-scrollbar {
+  width: 4px;
+  height: 0;
+}
+.app-sidebar ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+/* --- Header --- */
+.sidebar-header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+  gap: 8px;
+}
+
+.app-sidebar:not(.collapsed) .sidebar-header {
+  justify-content: flex-start;
+}
+
+.app-sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebar-title {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--bp-text-muted);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* --- Toggle button --- */
+.sidebar-toggle-btn.bp6-button {
+  color: var(--bp-text-muted) !important;
+}
+
+.sidebar-toggle-btn.bp6-button .bp6-icon,
+.sidebar-toggle-btn.bp6-button .bp6-icon svg {
+  color: var(--bp-text-muted) !important;
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.sidebar-toggle-btn.bp6-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.sidebar-toggle-btn.bp6-button:focus,
+.sidebar-toggle-btn.bp6-button:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* --- Content & Footer --- */
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+}
+
+.sidebar-footer {
+  padding: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* --- Menu items (expanded state) ---
+   Blueprint MenuItem renders:
+   <li> → <a class="bp6-menu-item"> → <span class="bp6-menu-item-icon"> + <div class="bp6-fill">text</div>
+*/
+.app-sidebar .bp6-menu {
+  background: transparent !important;
+}
+
+.app-sidebar .bp6-menu-item {
+  border-radius: 3px;
+  color: var(--bp-text-muted) !important;
+  padding: 10px 14px;
+  font-size: 15px;
+}
+
+.app-sidebar .bp6-menu-item .bp6-fill,
+.app-sidebar .bp6-menu-item .bp6-text-overflow-ellipsis,
+.app-sidebar .bp6-menu-item .bp6-icon svg {
+  color: var(--bp-text-muted) !important;
+}
+
+.app-sidebar .bp6-menu-item .bp6-menu-item-icon {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* --- Hover state --- */
+.app-sidebar .bp6-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--bp-bg-light) !important;
+}
+
+.app-sidebar .bp6-menu-item:hover .bp6-fill,
+.app-sidebar .bp6-menu-item:hover .bp6-icon svg {
+  color: var(--bp-bg-light) !important;
+}
+
+/* --- Active state --- */
+.app-sidebar .active-menu-item {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: var(--bp-bg-light) !important;
+}
+
+.app-sidebar .active-menu-item .bp6-fill,
+.app-sidebar .active-menu-item .bp6-text-overflow-ellipsis,
+.app-sidebar .active-menu-item .bp6-icon svg {
+  color: var(--bp-bg-light) !important;
+}
+
+/* --- Focus ring removal --- */
+.app-sidebar .bp6-menu-item:focus,
+.app-sidebar .bp6-menu-item:focus-visible,
+.app-sidebar .bp6-menu-item:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ===========================
+   Collapsed state
+   =========================== */
+.app-sidebar.collapsed .sidebar-content {
+  padding: 8px 4px;
+}
+
+/* 모든 메뉴와 리스트아이템을 사이드바 너비에 맞게 축소 */
+.app-sidebar.collapsed .bp6-menu {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.app-sidebar.collapsed .bp6-menu li {
+  width: 100% !important;
+}
+
+/* 메뉴 아이템: 아이콘만 가운데 표시 */
+.app-sidebar.collapsed .bp6-menu-item {
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 14px 0 !important;
+  min-width: 0 !important;
+}
+
+/* Blueprint 기본 margin-right: 8px 제거 (모든 자식) */
+.app-sidebar.collapsed .bp6-menu-item > * {
+  margin-right: 0 !important;
+}
+
+/* 아이콘 래퍼 margin 완전 제거 */
+.app-sidebar.collapsed .bp6-menu-item-icon {
+  margin: 0 !important;
+  color: var(--bp-text-muted) !important;
+}
+
+/* 텍스트 숨김 */
+.app-sidebar.collapsed .bp6-menu-item > .bp6-fill {
+  display: none !important;
+}
+
+/* Active 아이콘 색상 */
+.app-sidebar.collapsed .active-menu-item .bp6-menu-item-icon {
+  color: var(--bp-bg-light) !important;
+}

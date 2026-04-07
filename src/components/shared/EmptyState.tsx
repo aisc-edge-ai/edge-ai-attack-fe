@@ -1,19 +1,19 @@
-import { Target } from 'lucide-react';
+import { NonIdealState, Icon, type IconName } from '@blueprintjs/core';
 
 interface EmptyStateProps {
-  icon?: React.ReactNode;
+  icon?: IconName;
   title: string;
   description?: string;
-  action?: React.ReactNode;
+  action?: React.ReactElement;
 }
 
-export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
+export function EmptyState({ icon = 'search', title, description, action }: EmptyStateProps) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-xl bg-muted p-12">
-      {icon || <Target size={48} className="mb-4 text-muted-foreground/50" />}
-      <p className="text-lg font-medium text-foreground mb-2">{title}</p>
-      {description && <p className="text-sm">{description}</p>}
-      {action && <div className="mt-6">{action}</div>}
-    </div>
+    <NonIdealState
+      icon={<Icon icon={icon} size={48} />}
+      title={title}
+      description={description}
+      action={action}
+    />
   );
 }

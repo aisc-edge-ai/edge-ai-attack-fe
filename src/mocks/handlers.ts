@@ -3,6 +3,7 @@ import { API_BASE_URL } from '@/lib/constants';
 import {
   MOCK_ATTACK_CATEGORIES,
   MOCK_DATASETS,
+  MOCK_RESULTS,
   MODEL_ATTACK_MAP,
 } from '@/lib/mock-data';
 
@@ -84,6 +85,49 @@ export const handlers = [
     }
 
     return HttpResponse.json(datasets);
+  }),
+
+  // ==========================================
+  // 결과 목록 조회
+  // ==========================================
+  http.get(`${API_BASE_URL}/results/summary`, async () => {
+    await delay(300);
+    return HttpResponse.json({
+      totalAttacks: 124,
+      avgVulnerability: 62.4,
+      mostVulnerableModel: { name: 'YOLOv5', rate: '98.5%' },
+      mostLethalAttack: { name: 'Patch-Hiding', rate: '82.1%' },
+    });
+  }),
+
+  http.get(`${API_BASE_URL}/results/:id`, async ({ params }) => {
+    await delay(300);
+    const result = MOCK_RESULTS.find((r) => r.id === params.id);
+    if (result) return HttpResponse.json(result);
+    // 동적 attackId로 접근 시 첫 번째 결과 반환
+    return HttpResponse.json(MOCK_RESULTS[0]);
+  }),
+
+  http.get(`${API_BASE_URL}/results`, async ({ request }) => {
+    await delay(400);
+    const url = new URL(request.url);
+    const model = url.searchParams.get('model');
+    const attack = url.searchParams.get('attack');
+    const search = url.searchParams.get('search');
+
+    let filtered = [...MOCK_RESULTS];
+    if (model) filtered = filtered.filter((r) => r.model === model);
+    if (attack) filtered = filtered.filter((r) => r.attack === attack);
+    if (search) filtered = filtered.filter((r) =>
+      r.id.includes(search) || r.model.includes(search)
+    );
+
+    return HttpResponse.json({ data: filtered, total: filtered.length });
+  }),
+
+  http.delete(`${API_BASE_URL}/results/:id`, async () => {
+    await delay(300);
+    return HttpResponse.json({ success: true });
   }),
 
   // ==========================================

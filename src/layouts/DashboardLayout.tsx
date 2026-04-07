@@ -1,100 +1,96 @@
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Monitor, ShieldAlert, BarChart3, Settings, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Button, Menu, MenuItem, Navbar, NavbarGroup, NavbarHeading, Alignment, Icon } from '@blueprintjs/core';
 import { useAuth } from '@/hooks/useAuth';
 import { ROUTE_TITLES } from '@/lib/constants';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarTrigger,
-  SidebarInset,
-} from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/dashboard', icon: Monitor, label: '대시보드' },
-  { to: '/attack', icon: ShieldAlert, label: '모의 공격 수행' },
-  { to: '/results', icon: BarChart3, label: '모의 공격 결과' },
-  { to: '/projects', icon: Settings, label: '프로젝트 관리' },
+  { to: '/dashboard', icon: 'desktop' as const, label: '대시보드' },
+  { to: '/attack', icon: 'shield' as const, label: '모의 공격 수행' },
+  { to: '/results', icon: 'chart' as const, label: '모의 공격 결과' },
+  { to: '/projects', icon: 'cog' as const, label: '프로젝트 관리' },
 ];
 
 export function DashboardLayout() {
   const { logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const basePath = '/' + location.pathname.split('/')[1];
   const pageTitle = ROUTE_TITLES[basePath] || '';
+  const [collapsed, setCollapsed] = useState(false);
+
+  const activeNav = navItems.find(item => basePath === item.to) ||
+    (location.pathname.startsWith('/results') ? navItems.find(item => item.to === '/results') : null);
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        {/* 사이드바 헤더: 로고 */}
-        <SidebarHeader className="px-4 py-3">
-          <h1 className="text-lg font-bold">엣지 AI 모의공격</h1>
-        </SidebarHeader>
-
-        {/* 사이드바 네비게이션 */}
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navItems.map((item) => {
-                  const isActive =
-                    basePath === item.to ||
-                    (item.to === '/results' &&
-                      location.pathname.startsWith('/results'));
-
-                  return (
-                    <SidebarMenuItem key={item.to}>
-                      <SidebarMenuButton asChild isActive={isActive} size="lg">
-                        <NavLink to={item.to}>
-                          <item.icon />
-                          <span>{item.label}</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-
-        {/* 사이드바 푸터: 로그아웃 */}
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={logout} size="lg">
-                <LogOut />
-                <span>로그아웃</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      </Sidebar>
-
-      {/* 메인 콘텐츠 영역 */}
-      <SidebarInset>
-        {/* 상단 헤더 */}
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <h2 className="text-lg font-semibold">{pageTitle}</h2>
-        </header>
-
-        {/* 콘텐츠 바디 */}
-        <div className="flex-1 overflow-auto p-6">
-          <div className="bg-card border border-border rounded-lg h-full p-6 shadow-sm">
-            <Outlet />
-          </div>
+    <div className="app-layout">
+      {/* Sidebar */}
+      <aside className={cn('app-sidebar bp6-dark', collapsed && 'collapsed')}>
+        <div className="sidebar-header">
+          <Button
+            className="sidebar-toggle-btn"
+            icon="menu"
+            minimal
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label="Toggle Sidebar"
+          />
+          {!collapsed && <span className="sidebar-title">Edge AI 보안 솔루션</span>}
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+
+        <div className="sidebar-content">
+          <Menu className="sidebar-menu">
+            {navItems.map((item) => {
+              const isActive =
+                basePath === item.to ||
+                (item.to === '/results' && location.pathname.startsWith('/results'));
+
+              return (
+                <MenuItem
+                  key={item.to}
+                  icon={item.icon}
+                  text={collapsed ? undefined : item.label}
+                  className={isActive ? 'active-menu-item' : ''}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(item.to);
+                  }}
+                />
+              );
+            })}
+          </Menu>
+        </div>
+
+        <div className="sidebar-footer">
+          <Menu className="sidebar-menu">
+            <MenuItem
+              icon="log-out"
+              text={collapsed ? undefined : '로그아웃'}
+              onClick={logout}
+            />
+          </Menu>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="app-main">
+        <Navbar className="app-header">
+          <NavbarGroup align={Alignment.LEFT}>
+            {activeNav && <Icon icon={activeNav.icon} size={20} className="page-header-icon" />}
+            <NavbarHeading className="page-title">
+              {pageTitle}
+            </NavbarHeading>
+          </NavbarGroup>
+          <NavbarGroup align={Alignment.RIGHT}>
+            <Button minimal icon="notifications" />
+            <Button minimal icon="user" />
+          </NavbarGroup>
+        </Navbar>
+
+        <div className="app-content">
+          <Outlet />
+        </div>
+      </main>
+    </div>
   );
 }

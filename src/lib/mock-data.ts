@@ -70,10 +70,10 @@ export const MOCK_DATASETS: Dataset[] = [
 // 공격 결과 로그
 // ==========================================
 export const MOCK_RESULTS: AttackResult[] = [
-  { id: 'LOG-20260212-001', date: '2026-02-12 10:30', model: 'YOLOv8', modelType: '객체 탐지', attack: 'Patch-Hiding', successRate: '76.47%', beforeAccuracy: '95.2%', afterAccuracy: '22.4%', risk: 'high' },
-  { id: 'LOG-20260212-002', date: '2026-02-12 09:15', model: 'DETR', modelType: '객체 탐지', attack: 'FGSM', successRate: '12.50%', beforeAccuracy: '92.1%', afterAccuracy: '80.5%', risk: 'low' },
-  { id: 'LOG-20260211-003', date: '2026-02-11 16:20', model: 'ResNet50', modelType: '자율주행 (분류)', attack: 'PGD', successRate: '98.56%', beforeAccuracy: '99.8%', afterAccuracy: '1.2%', risk: 'critical' },
-  { id: 'LOG-20260211-004', date: '2026-02-11 14:10', model: 'Whisper', modelType: '음성 인식', attack: '딥보이스 우회', successRate: '56.59%', beforeAccuracy: '96.5%', afterAccuracy: '42.0%', risk: 'medium' },
+  { id: 'LOG-20260212-001', date: '2026-02-12 10:30', model: 'YOLOv8', modelType: '객체 탐지', attack: 'Patch-Hiding', successRate: '76.47%', beforeAccuracy: '95.2%', afterAccuracy: '22.4%', risk: 'vulnerable' },
+  { id: 'LOG-20260212-002', date: '2026-02-12 09:15', model: 'DETR', modelType: '객체 탐지', attack: 'FGSM', successRate: '12.50%', beforeAccuracy: '92.1%', afterAccuracy: '80.5%', risk: 'safe' },
+  { id: 'LOG-20260211-003', date: '2026-02-11 16:20', model: 'ResNet50', modelType: '자율주행 (분류)', attack: 'PGD', successRate: '98.56%', beforeAccuracy: '99.8%', afterAccuracy: '1.2%', risk: 'vulnerable' },
+  { id: 'LOG-20260211-004', date: '2026-02-11 14:10', model: 'Whisper', modelType: '음성 인식', attack: '딥보이스 우회', successRate: '56.59%', beforeAccuracy: '96.5%', afterAccuracy: '42.0%', risk: 'warning' },
 ];
 
 // ==========================================

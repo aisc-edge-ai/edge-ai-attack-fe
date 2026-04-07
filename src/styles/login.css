@@ -1,0 +1,209 @@
+/* ===========================
+   Neobrutalism Login Page
+   =========================== */
+
+/* 2-column layout */
+.neo-auth-layout {
+  display: grid;
+  min-height: 100vh;
+  background: #e0e0e0;
+}
+
+@media (min-width: 1024px) {
+  .neo-auth-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Left: Form side */
+.neo-form-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 40px;
+  background: #fff;
+  position: relative;
+}
+
+.neo-form-wrapper {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* Right: Art side (ASCII/halftone) */
+.neo-art-side {
+  display: none;
+  position: relative;
+  overflow: hidden;
+  background: #2a2a2a;
+}
+
+@media (min-width: 1024px) {
+  .neo-art-side {
+    display: block;
+  }
+}
+
+.neo-art-side::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle, #444 1px, transparent 1px);
+  background-size: 4px 4px;
+  opacity: 0.6;
+}
+
+.neo-art-side::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(50,50,50,0.8) 0%, rgba(80,80,80,0.4) 40%, rgba(30,30,30,0.9) 100%);
+}
+
+.neo-art-text {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  right: 40px;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* --- Logo --- */
+.neo-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 48px;
+}
+
+.neo-logo-icon {
+  color: #000;
+}
+
+/* --- Title --- */
+.neo-title {
+  font-size: 38px;
+  font-weight: 800;
+  color: #000;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin: 0 0 8px 0;
+}
+
+.neo-subtitle {
+  font-size: 15px;
+  color: #888;
+  margin: 0 0 36px 0;
+  font-weight: 400;
+}
+
+/* --- Form --- */
+.neo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Pill-style input override for Blueprint InputGroup */
+.neo-input-wrapper .bp6-input-group .bp6-input {
+  border-radius: 999px !important;
+  border: 2px solid #d4d4d4 !important;
+  padding: 12px 20px !important;
+  font-size: 15px !important;
+  height: auto !important;
+  box-shadow: none !important;
+  background: #fff !important;
+  transition: border-color 0.15s ease;
+}
+
+.neo-input-wrapper .bp6-input-group .bp6-input:focus {
+  border-color: #000 !important;
+  box-shadow: none !important;
+}
+
+.neo-input-wrapper .bp6-input-group .bp6-input::placeholder {
+  color: #aaa;
+}
+
+/* Error state */
+.neo-input-wrapper.has-error .bp6-input-group .bp6-input {
+  border-color: var(--bp-danger) !important;
+}
+
+.neo-error-text {
+  font-size: 12px;
+  color: var(--bp-danger);
+  margin-top: 4px;
+  padding-left: 20px;
+}
+
+/* --- Pill button (black) --- */
+.neo-btn-submit.bp6-button {
+  border-radius: 999px !important;
+  padding: 12px 24px !important;
+  height: auto !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  background: #000 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  border: none !important;
+  transition: background 0.15s ease;
+}
+
+.neo-btn-submit.bp6-button:hover {
+  background: #222 !important;
+}
+
+.neo-btn-submit.bp6-button:active {
+  background: #333 !important;
+}
+
+.neo-btn-submit.bp6-button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.neo-btn-submit.bp6-button .bp6-button-text {
+  color: #fff !important;
+}
+
+/* --- Checkbox --- */
+.neo-checkbox-row {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+/* --- Divider "Or" style (unused but available) --- */
+.neo-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #bbb;
+  font-size: 13px;
+  margin: 8px 0;
+}
+
+.neo-divider::before,
+.neo-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #ddd;
+}
+
+/* --- Footer --- */
+.neo-footer {
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+  margin-top: 32px;
+}

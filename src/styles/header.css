@@ -1,0 +1,36 @@
+/* ===========================
+   App Header (Top Navbar)
+   =========================== */
+.app-header {
+  height: var(--header-height);
+  padding: 0 20px 0 24px;
+  background: var(--bp-bg-card);
+  border-bottom: 1px solid var(--bp-border);
+  flex-shrink: 0;
+}
+
+.app-header.bp6-navbar {
+  box-shadow: none;
+}
+
+.bp6-dark .app-header {
+  background: #252a31;
+  border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+/* 페이지 아이콘 */
+.page-header-icon {
+  color: var(--bp-text-secondary);
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+/* 페이지 제목 */
+.page-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--bp-text-primary);
+  margin: 0;
+  line-height: 1;
+}

@@ -17,4 +17,4 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/projects': '프로젝트 관리',
 };
 
-// RISK_LABELS와 RISK_STYLES는 RiskBadge 컴포넌트 내부로 이동 (shadcn Badge 활용)
+// RISK_LABELS와 RISK_STYLES는 RiskBadge 컴포넌트 내부로 이동 (Blueprint Tag 활용)

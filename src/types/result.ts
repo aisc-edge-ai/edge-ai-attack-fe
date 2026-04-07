@@ -1,4 +1,4 @@
-export type RiskLevel = 'critical' | 'high' | 'medium' | 'low';
+export type RiskLevel = 'vulnerable' | 'warning' | 'safe';
 
 export interface AttackResult {
   id: string;

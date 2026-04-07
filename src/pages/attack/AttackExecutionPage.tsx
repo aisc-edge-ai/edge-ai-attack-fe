@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { ShieldAlert } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, Intent, Icon } from '@blueprintjs/core';
 import { useAttackWizardStore } from '@/stores/attackWizardStore';
 import { useExecuteAttack } from '@/hooks/useAttacks';
 import { StepIndicator } from './components/StepIndicator';
 import { StepModelSelect } from './components/StepModelSelect';
 import { StepAttackSelect } from './components/StepAttackSelect';
 import { StepDataSource } from './components/StepDataSource';
+import { WorkflowCanvas } from './components/WorkflowCanvas';
 import { AttackProgressModal } from './components/AttackProgressModal';
-import { toast } from 'sonner';
+import { AppToaster } from '@/lib/toaster';
 
 export function AttackExecutionPage() {
   const {
@@ -41,63 +41,62 @@ export function AttackExecutionPage() {
       setAttackId(result.attackId);
       setShowProgress(true);
     } catch {
-      toast.error('공격 실행에 실패했습니다.');
+      const toaster = await AppToaster;
+      toaster.show({ message: '공격 실행에 실패했습니다.', intent: Intent.DANGER, icon: 'error' });
     }
   };
 
-  const handleCloseProgress = () => {
-    setShowProgress(false);
-    setAttackId(null);
-  };
-
   return (
-    <div className="h-full flex flex-col">
+    <div className="attack-page-layout">
+      {/* 상단 스테이지 바 */}
       <StepIndicator currentStep={currentStep} />
 
-      <div className="flex-1 flex flex-col items-center pt-8 overflow-y-auto w-full">
-        <div className="w-full max-w-4xl">
-          {currentStep === 1 && <StepModelSelect />}
-          {currentStep === 2 && <StepAttackSelect />}
-          {currentStep === 3 && <StepDataSource />}
-        </div>
-      </div>
-
-      <div className="mt-auto border-t border-border pt-6 pb-2 w-full">
-        <div className="max-w-4xl mx-auto flex justify-between items-center px-4">
-          <div>
-            {currentStep > 1 ? (
-              <Button variant="outline" onClick={prevStep} size="lg">
-                이전 단계
-              </Button>
-            ) : (
-              <div className="w-24" />
-            )}
+      {/* 2-column: 좌측 위자드 + 우측 캔버스 */}
+      <div className="attack-page-content">
+        {/* 좌측 패널: 3단계 순차 선택 */}
+        <div className="config-panel">
+          <div className="config-panel-body">
+            {currentStep === 1 && <StepModelSelect />}
+            {currentStep === 2 && <StepAttackSelect />}
+            {currentStep === 3 && <StepDataSource />}
           </div>
 
-          <div>
+          {/* 하단 네비게이션 */}
+          <div className="config-panel-footer">
+            {currentStep > 1 ? (
+              <Button text="이전" icon="chevron-left" onClick={prevStep} />
+            ) : (
+              <div />
+            )}
+
             {currentStep < 3 ? (
-              <Button onClick={nextStep} disabled={!canProceed} size="lg">
-                다음 단계
-              </Button>
+              <Button
+                text="다음"
+                rightIcon="chevron-right"
+                intent={Intent.PRIMARY}
+                onClick={nextStep}
+                disabled={!canProceed}
+              />
             ) : (
               <Button
+                intent={Intent.PRIMARY}
                 onClick={handleExecute}
                 disabled={executeAttack.isPending}
-                size="lg"
               >
-                <ShieldAlert size={20} className="mr-2" />
-                {executeAttack.isPending
-                  ? '실행 준비 중...'
-                  : '모의 공격 수행 시작'}
+                <Icon icon="shield" />
+                {executeAttack.isPending ? '준비 중...' : '공격 시작'}
               </Button>
             )}
           </div>
         </div>
+
+        {/* 우측 패널: Workflow 캔버스 */}
+        <WorkflowCanvas />
       </div>
 
       <AttackProgressModal
         open={showProgress}
-        onClose={handleCloseProgress}
+        onClose={() => { setShowProgress(false); setAttackId(null); }}
         attackId={attackId}
       />
     </div>

@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { Toaster } from '@/components/ui/sonner';
+import { HotkeysProvider } from '@blueprintjs/core';
 import { router } from './routes';
 
 const queryClient = new QueryClient({
@@ -17,10 +16,9 @@ const queryClient = new QueryClient({
 export function Providers() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+      <HotkeysProvider>
         <RouterProvider router={router} />
-        <Toaster position="top-right" richColors />
-      </TooltipProvider>
+      </HotkeysProvider>
     </QueryClientProvider>
   );
 }

@@ -5,14 +5,18 @@ interface StatusDotProps {
   className?: string;
 }
 
-const statusColors = {
-  online: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]',
-  offline: 'bg-muted-foreground',
-  warning: 'bg-destructive animate-pulse',
+const statusLabels = {
+  online: '정상 작동',
+  offline: '연결 끊김',
+  warning: '취약점 경고',
 };
 
 export function StatusDot({ status, className }: StatusDotProps) {
   return (
-    <div className={cn('w-2.5 h-2.5 rounded-full', statusColors[status], className)} />
+    <span
+      className={cn('status-dot', status, className)}
+      role="status"
+      aria-label={statusLabels[status]}
+    />
   );
 }
