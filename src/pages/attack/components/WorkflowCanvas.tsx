@@ -11,6 +11,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { useAttackWizardStore } from '@/stores/attackWizardStore';
 import { useDatasets } from '@/hooks/useDatasets';
+import { useAttackTypes } from '@/hooks/useAttacks';
 import { StartNode } from './nodes/StartNode';
 import { ModelNode } from './nodes/ModelNode';
 import { AttackNode } from './nodes/AttackNode';
@@ -33,6 +34,7 @@ export function WorkflowCanvas() {
   const { currentStep, selectedModelType, selectedAttackIds, dataSource, selectedDatasetId } =
     useAttackWizardStore();
   const { data: datasets } = useDatasets({ sort: 'latest' });
+  const { data: attackCategories } = useAttackTypes(selectedModelType);
 
   const { nodes, edges, nodeKey } = useMemo(() => {
     const n: Node[] = [];
@@ -64,10 +66,14 @@ export function WorkflowCanvas() {
     // 공격 노드: Step 2부터 보임
     if (currentStep >= 2) {
       x += gap;
+      const allAttacks = (attackCategories || []).flatMap((c) => c.children);
+      const attackNames = allAttacks
+        .filter((a) => selectedAttackIds.includes(a.id))
+        .map((a) => a.name);
       n.push({
         id: 'attack',
         type: 'attackNode',
-        data: { attackIds: selectedAttackIds },
+        data: { attackNames },
         position: { x, y },
       });
       e.push({ id: 'e-model-attack', source: 'model', target: 'attack', ...ANIMATED_EDGE });
@@ -91,7 +97,7 @@ export function WorkflowCanvas() {
       edges: e,
       nodeKey: n.map(nd => nd.id).join('-'),
     };
-  }, [currentStep, selectedModelType, selectedAttackIds, dataSource, selectedDatasetId, datasets]);
+  }, [currentStep, selectedModelType, selectedAttackIds, dataSource, selectedDatasetId, datasets, attackCategories]);
 
   return (
     <div className="workflow-canvas">

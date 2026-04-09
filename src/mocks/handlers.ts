@@ -4,6 +4,8 @@ import {
   MOCK_ATTACK_CATEGORIES,
   MOCK_DATASETS,
   MOCK_RESULTS,
+  MOCK_MODELS,
+  MOCK_DASHBOARD_SUMMARY,
   MODEL_ATTACK_MAP,
 } from '@/lib/mock-data';
 
@@ -41,6 +43,22 @@ export const handlers = [
     return HttpResponse.json({
       accessToken: 'mock-access-token-refreshed-' + Date.now(),
     });
+  }),
+
+  // ==========================================
+  // 모델 목록 조회
+  // ==========================================
+  http.get(`${API_BASE_URL}/models`, async () => {
+    await delay(300);
+    return HttpResponse.json(MOCK_MODELS);
+  }),
+
+  // ==========================================
+  // 대시보드 요약
+  // ==========================================
+  http.get(`${API_BASE_URL}/dashboard/summary`, async () => {
+    await delay(300);
+    return HttpResponse.json(MOCK_DASHBOARD_SUMMARY);
   }),
 
   // ==========================================
