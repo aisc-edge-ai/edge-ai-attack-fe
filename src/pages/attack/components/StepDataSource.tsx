@@ -1,7 +1,6 @@
 import { useAttackWizardStore } from '@/stores/attackWizardStore';
 import { useDatasets } from '@/hooks/useDatasets';
-import { Card, RadioGroup, Radio, Divider } from '@blueprintjs/core';
-import { cn } from '@/lib/utils';
+import { Card, Elevation, Icon, Tag, Divider, RadioGroup, Radio } from '@blueprintjs/core';
 
 export function StepDataSource() {
   const {
@@ -17,91 +16,138 @@ export function StepDataSource() {
   const latestDataset = datasets?.[0] || null;
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: 480, margin: '0 auto' }}>
-      <h3 style={{ textAlign: 'center', marginBottom: 32 }}>공격 데이터 설정</h3>
-      <Card>
-        {/* 데이터 소스 선택 */}
-        <div
-          className={cn('radio-card', dataSource === 'generate' && 'selected')}
+    <div className="animate-fade-in">
+      <h5 className="bp6-heading" style={{ marginBottom: 20 }}>공격 데이터 설정</h5>
+
+      {/* 데이터 소스 선택 — interactive Card 패턴 */}
+      <div className="datasource-options">
+        <Card
+          interactive
+          selected={dataSource === 'generate'}
+          elevation={dataSource === 'generate' ? Elevation.TWO : Elevation.ZERO}
+          className="datasource-card"
           onClick={() => setDataSource('generate')}
         >
-          <Radio
-            checked={dataSource === 'generate'}
-            onChange={() => setDataSource('generate')}
-            style={{ margin: 0 }}
-          />
-          <div>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>실시간 공격 데이터 생성</div>
-            <div className="bp6-text-muted" style={{ fontSize: 13 }}>
-              선택한 모델과 공격 기법에 맞춰 시스템이 자동으로 데이터를 생성합니다.
+          <div className="datasource-card-content">
+            <div className="datasource-card-icon">
+              <Icon
+                icon="refresh"
+                size={24}
+                intent={dataSource === 'generate' ? 'primary' : 'none'}
+              />
             </div>
+            <div className="datasource-card-text">
+              <div className="datasource-card-title">실시간 공격 데이터 생성</div>
+              <div className="datasource-card-desc">
+                선택한 모델과 공격 기법에 맞춰 시스템이 자동으로 데이터를 생성합니다.
+              </div>
+            </div>
+            <Icon
+              icon={dataSource === 'generate' ? 'tick-circle' : 'circle'}
+              size={18}
+              intent={dataSource === 'generate' ? 'primary' : 'none'}
+              className="datasource-card-check"
+            />
           </div>
-        </div>
+        </Card>
 
-        <div
-          className={cn('radio-card', dataSource === 'load' && 'selected')}
+        <Card
+          interactive
+          selected={dataSource === 'load'}
+          elevation={dataSource === 'load' ? Elevation.TWO : Elevation.ZERO}
+          className="datasource-card"
           onClick={() => setDataSource('load')}
-          style={{ marginTop: 12 }}
         >
-          <Radio
-            checked={dataSource === 'load'}
-            onChange={() => setDataSource('load')}
-            style={{ margin: 0 }}
-          />
-          <div>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>저장된 데이터 불러오기</div>
-            <div className="bp6-text-muted" style={{ fontSize: 13 }}>
-              사전에 준비된 공격 데이터셋을 선택하여 테스트를 진행합니다.
+          <div className="datasource-card-content">
+            <div className="datasource-card-icon">
+              <Icon
+                icon="database"
+                size={24}
+                intent={dataSource === 'load' ? 'primary' : 'none'}
+              />
             </div>
+            <div className="datasource-card-text">
+              <div className="datasource-card-title">저장된 데이터 불러오기</div>
+              <div className="datasource-card-desc">
+                사전에 준비된 공격 데이터셋을 선택하여 테스트를 진행합니다.
+              </div>
+            </div>
+            <Icon
+              icon={dataSource === 'load' ? 'tick-circle' : 'circle'}
+              size={18}
+              intent={dataSource === 'load' ? 'primary' : 'none'}
+              className="datasource-card-check"
+            />
           </div>
-        </div>
+        </Card>
+      </div>
 
-        {/* 저장된 데이터 서브옵션 */}
-        {dataSource === 'load' && (
-          <>
-            <Divider style={{ margin: '20px 0' }} />
-            <RadioGroup
-              onChange={(e) => {
-                const val = (e.target as HTMLInputElement).value as 'latest' | 'fixed';
-                setDatasetSubOption(val);
-                if (val === 'latest' && latestDataset) {
-                  setDatasetId(latestDataset.id);
-                } else {
-                  setDatasetId(null);
-                }
-              }}
-              selectedValue={datasetSubOption || ''}
-            >
-              <Radio value="latest" label="가장 최근 데이터셋" />
-              {latestDataset && datasetSubOption === 'latest' && (
-                <div className="bp6-text-muted" style={{ marginLeft: 28, fontSize: 13, marginBottom: 8 }}>
-                  {latestDataset.name} ({latestDataset.createdAt} · {latestDataset.size})
-                </div>
-              )}
+      {/* 저장된 데이터 서브옵션 */}
+      {dataSource === 'load' && (
+        <div className="datasource-sub animate-fade-in">
+          <Divider style={{ margin: '20px 0' }} />
 
-              <Radio value="fixed" label="고정 데이터셋" />
-              {datasetSubOption === 'fixed' && datasets && (
-                <div style={{ marginLeft: 28, marginTop: 8 }}>
-                  {datasets.map((ds) => (
-                    <div
-                      key={ds.id}
-                      className={cn('dataset-item', selectedDatasetId === ds.id && 'selected')}
-                      onClick={() => setDatasetId(ds.id)}
-                      style={{ marginBottom: 6 }}
-                    >
-                      <div>
-                        <span style={{ fontWeight: 500 }}>{ds.name}</span>
-                        <span className="bp6-text-muted" style={{ marginLeft: 8, fontSize: 12 }}>{ds.type}</span>
-                      </div>
-                      <span className="bp6-text-muted" style={{ fontSize: 12 }}>{ds.size}</span>
+          <RadioGroup
+            onChange={(e) => {
+              const val = (e.target as HTMLInputElement).value as 'latest' | 'fixed';
+              setDatasetSubOption(val);
+              if (val === 'latest' && latestDataset) {
+                setDatasetId(latestDataset.id);
+              } else {
+                setDatasetId(null);
+              }
+            }}
+            selectedValue={datasetSubOption || ''}
+          >
+            <Radio value="latest" label="가장 최근 데이터셋" />
+            {latestDataset && datasetSubOption === 'latest' && (
+              <Card compact className="dataset-info-card">
+                <div className="dataset-info-content">
+                  <Icon icon="document" size={16} />
+                  <div>
+                    <div className="dataset-info-name">{latestDataset.name}</div>
+                    <div className="dataset-info-meta">
+                      <Tag minimal round>{latestDataset.createdAt}</Tag>
+                      <Tag minimal round>{latestDataset.size}</Tag>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              )}
-            </RadioGroup>
-          </>
-        )}
-      </Card>
+              </Card>
+            )}
+
+            <Radio value="fixed" label="고정 데이터셋" style={{ marginTop: 12 }} />
+            {datasetSubOption === 'fixed' && datasets && (
+              <div className="dataset-list">
+                {datasets.map((ds) => (
+                  <Card
+                    key={ds.id}
+                    interactive
+                    selected={selectedDatasetId === ds.id}
+                    compact
+                    className="dataset-list-item"
+                    onClick={() => setDatasetId(ds.id)}
+                  >
+                    <div className="dataset-list-content">
+                      <div className="dataset-list-left">
+                        <Icon
+                          icon={selectedDatasetId === ds.id ? 'tick-circle' : 'circle'}
+                          size={16}
+                          intent={selectedDatasetId === ds.id ? 'primary' : 'none'}
+                        />
+                        <span className="dataset-list-name">{ds.name}</span>
+                      </div>
+                      <div className="dataset-list-right">
+                        <Tag minimal round>{ds.type}</Tag>
+                        <span className="dataset-list-size">{ds.size}</span>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </RadioGroup>
+        </div>
+      )}
     </div>
   );
 }

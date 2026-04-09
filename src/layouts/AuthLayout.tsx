@@ -1,33 +1,5 @@
 import { Outlet } from 'react-router-dom';
 
-const ASCII_ART = `
-░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-░░▒▒▒▒▒▒▒▒▒▒░░░░░░▒▒▒▒▒▒░░░
-░▒▓▓▓▓▓▓▓▓▓▒░░░░▒▓▓▓▓▓▓▒░░░
-░▒▓█████████▓▒▒▒▓████████▓▒░░
-░▒▓█ EDGE AI ██████ SEC  █▓▒░
-░▒▓██████████████████████▓▒░░
-░▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒░░
-░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░░
-░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-░░ ADVERSARIAL ATTACK SIM  ░░
-░░ VULNERABILITY ANALYSIS  ░░
-░░ SECURITY ASSESSMENT     ░░
-░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-░▒▓▓▒░░▒▓▓▒░░▒▓▓▒░░▒▓▓▒░░░░
-░▒██▒░░▒██▒░░▒██▒░░▒██▒░░░░
-░▒▓▓▒░░▒▓▓▒░░▒▓▓▒░░▒▓▓▒░░░░
-░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-░░ AI SAFETY RESEARCH CTR  ░░
-░░ IITP EDGE AI PROJECT   ░░
-░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░░
-░▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒░░
-░▒▓████████████████████████▒░
-░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░░
-░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-`.trim();
-
 export function AuthLayout() {
   return (
     <div className="neo-auth-layout">
@@ -38,9 +10,20 @@ export function AuthLayout() {
         </div>
       </div>
 
-      {/* 우측: ASCII 아트 배경 */}
+      {/* 우측: 다크 배경 + 로고 + 정보 텍스트 */}
       <div className="neo-art-side">
-        <div className="neo-art-text">{ASCII_ART}</div>
+        <img src="/logo-aisc.svg" alt="" className="neo-bg-logo" />
+        <div className="neo-bg-info">
+          <div className="neo-bg-info-item">
+            <span>EXPLORE</span>
+            <span>EDGE AI SECURITY</span>
+            <span>PLATFORM</span>
+          </div>
+          <div className="neo-bg-info-item">
+            <span>AI안전성연구센터</span>
+            <span>IITP 엣지 AI 보안 과제</span>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -233,7 +233,7 @@ body {
 }
 
 /* ===========================
-   Workflow Canvas & Nodes
+   Workflow Canvas
    =========================== */
 .workflow-canvas {
   flex: 1;
@@ -252,12 +252,15 @@ body {
   background: var(--bp-bg-card);
 }
 
+/* ===========================
+   Workflow Nodes
+   =========================== */
 .workflow-node {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 14px 20px;
-  min-width: 180px;
+  width: 200px;
   border: 1px solid var(--bp-border);
   border-radius: 3px;
   background: var(--bp-bg-card);
@@ -285,11 +288,13 @@ body {
   margin-top: 2px;
 }
 
+
+/* --- 태그 --- */
 .workflow-node-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .workflow-node-tags .bp6-tag { font-size: 11px; }
@@ -357,6 +362,143 @@ body {
 .attack-item-name {
   font-size: 13px;
   font-weight: 500;
+}
+
+/* ===========================
+   Data Source Cards
+   =========================== */
+.datasource-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.datasource-card {
+  transition: all 0.15s ease;
+  border: 1px solid var(--bp-border) !important;
+}
+
+.datasource-card:hover {
+  border-color: var(--bp-primary) !important;
+}
+
+.datasource-card-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.datasource-card-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--bp-bg-light);
+}
+
+.datasource-card.bp6-card.bp6-selected .datasource-card-icon {
+  background: rgba(45, 114, 210, 0.08);
+}
+
+.datasource-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.datasource-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bp-text-primary);
+  margin-bottom: 2px;
+}
+
+.datasource-card-desc {
+  font-size: 12px;
+  color: var(--bp-text-secondary);
+  line-height: 1.4;
+}
+
+.datasource-card-check {
+  flex-shrink: 0;
+}
+
+/* Dataset info card (latest) */
+.dataset-info-card {
+  margin: 8px 0 8px 28px;
+}
+
+.dataset-info-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dataset-info-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.dataset-info-meta {
+  display: flex;
+  gap: 6px;
+}
+
+.dataset-info-meta .bp6-tag {
+  font-size: 11px;
+}
+
+/* Dataset list (fixed) */
+.dataset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 0 28px;
+}
+
+.dataset-list-item {
+  border: 1px solid var(--bp-border) !important;
+  transition: all 0.1s ease;
+}
+
+.dataset-list-item:hover {
+  border-color: var(--bp-primary) !important;
+}
+
+.dataset-list-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dataset-list-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dataset-list-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dataset-list-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dataset-list-right .bp6-tag {
+  font-size: 10px;
+}
+
+.dataset-list-size {
+  font-size: 11px;
+  color: var(--bp-text-muted);
+  font-family: Consolas, Monaco, monospace;
 }
 
 /* ===========================

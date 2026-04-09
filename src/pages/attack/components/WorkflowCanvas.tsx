@@ -11,70 +11,58 @@ import {
 import '@xyflow/react/dist/style.css';
 import { useAttackWizardStore } from '@/stores/attackWizardStore';
 import { useDatasets } from '@/hooks/useDatasets';
+import { StartNode } from './nodes/StartNode';
 import { ModelNode } from './nodes/ModelNode';
 import { AttackNode } from './nodes/AttackNode';
 import { DataSourceNode } from './nodes/DataSourceNode';
 
 const nodeTypes: NodeTypes = {
+  startNode: StartNode,
   modelNode: ModelNode,
   attackNode: AttackNode,
   dataSourceNode: DataSourceNode,
 };
 
-const EDGE_STYLE = {
-  stroke: 'var(--bp-primary)',
-  strokeWidth: 2,
-};
-
 const ANIMATED_EDGE = {
   animated: true,
-  style: EDGE_STYLE,
-  markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--bp-primary)', width: 16, height: 16 },
+  style: { stroke: '#2D72D2', strokeWidth: 2 },
+  markerEnd: { type: MarkerType.ArrowClosed, color: '#2D72D2', width: 16, height: 16 },
 };
 
 export function WorkflowCanvas() {
-  const { selectedModelType, selectedAttackIds, dataSource, selectedDatasetId } =
+  const { currentStep, selectedModelType, selectedAttackIds, dataSource, selectedDatasetId } =
     useAttackWizardStore();
   const { data: datasets } = useDatasets({ sort: 'latest' });
 
-  const { nodes, edges } = useMemo(() => {
+  const { nodes, edges, nodeKey } = useMemo(() => {
     const n: Node[] = [];
     const e: Edge[] = [];
     let x = 50;
     const y = 120;
     const gap = 260;
 
-    // 시작 노드 (항상 존재)
+    // 시작 노드 (항상)
     n.push({
       id: 'start',
-      type: 'input',
-      data: { label: '모의 공격 시작' },
+      type: 'startNode',
+      data: {},
       position: { x, y },
-      style: {
-        background: '#1C2127',
-        color: '#F5F8FA',
-        border: '1px solid #394B59',
-        borderRadius: 3,
-        padding: '10px 18px',
-        fontSize: 13,
-        fontWeight: 600,
-      },
     });
 
-    // 모델 노드
-    if (selectedModelType) {
+    // 모델 노드: Step 1부터 보임 (선택 전이면 빈 상태)
+    if (currentStep >= 1) {
       x += gap;
       n.push({
         id: 'model',
         type: 'modelNode',
-        data: { modelType: selectedModelType },
+        data: { modelType: selectedModelType || '' },
         position: { x, y },
       });
       e.push({ id: 'e-start-model', source: 'start', target: 'model', ...ANIMATED_EDGE });
     }
 
-    // 공격 노드
-    if (selectedAttackIds.length > 0) {
+    // 공격 노드: Step 2부터 보임
+    if (currentStep >= 2) {
       x += gap;
       n.push({
         id: 'attack',
@@ -85,8 +73,8 @@ export function WorkflowCanvas() {
       e.push({ id: 'e-model-attack', source: 'model', target: 'attack', ...ANIMATED_EDGE });
     }
 
-    // 데이터소스 노드
-    if (selectedAttackIds.length > 0 && (dataSource === 'generate' || selectedDatasetId)) {
+    // 데이터소스 노드: Step 3부터 보임
+    if (currentStep >= 3) {
       x += gap;
       const dataset = datasets?.find((d) => d.id === selectedDatasetId);
       n.push({
@@ -95,20 +83,20 @@ export function WorkflowCanvas() {
         data: { dataSource, datasetName: dataset?.name },
         position: { x, y },
       });
-      e.push({
-        id: 'e-attack-data',
-        source: 'attack',
-        target: 'datasource',
-        ...ANIMATED_EDGE,
-      });
+      e.push({ id: 'e-attack-data', source: 'attack', target: 'datasource', ...ANIMATED_EDGE });
     }
 
-    return { nodes: n, edges: e };
-  }, [selectedModelType, selectedAttackIds, dataSource, selectedDatasetId, datasets]);
+    return {
+      nodes: n,
+      edges: e,
+      nodeKey: n.map(nd => nd.id).join('-'),
+    };
+  }, [currentStep, selectedModelType, selectedAttackIds, dataSource, selectedDatasetId, datasets]);
 
   return (
     <div className="workflow-canvas">
       <ReactFlow
+        key={nodeKey}
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}

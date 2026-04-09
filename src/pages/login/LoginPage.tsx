@@ -4,16 +4,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/hooks/useAuth';
 import {
+  Card,
+  Elevation,
+  FormGroup,
+  InputGroup,
   Button,
   Checkbox,
-  InputGroup,
   Intent,
-  Spinner,
-  SpinnerSize,
   Icon,
 } from '@blueprintjs/core';
 import { AppToaster } from '@/lib/toaster';
-import { cn } from '@/lib/utils';
 
 const loginSchema = z.object({
   username: z.string().min(1, '아이디를 입력해주세요'),
@@ -63,79 +63,81 @@ export function LoginPage() {
   };
 
   return (
-    <>
-      {/* Logo */}
-      <div className="neo-logo">
-        <Icon icon="shield" size={32} className="neo-logo-icon" />
-      </div>
+    <div className="login-form-container">
+      <Icon icon="shield" size={28} className="login-logo-icon" />
+      <h2 className="bp6-heading login-title">환영합니다</h2>
+      <p className="bp6-text-muted login-subtitle">
+        엣지 AI 취약성 분석 시스템에 로그인하세요.
+      </p>
 
-      {/* Title */}
-      <h1 className="neo-title">환영합니다!</h1>
-      <p className="neo-subtitle">엣지 AI 취약성 분석 시스템에 로그인하세요.</p>
+      <Card elevation={Elevation.TWO} className="login-card">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <FormGroup
+            label="아이디"
+            labelFor="username"
+            intent={errors.username ? Intent.DANGER : Intent.NONE}
+            helperText={errors.username?.message}
+          >
+            <Controller
+              name="username"
+              control={control}
+              render={({ field }) => (
+                <InputGroup
+                  id="username"
+                  large
+                  placeholder="ID를 입력하세요"
+                  disabled={isLoading}
+                  intent={errors.username ? Intent.DANGER : Intent.NONE}
+                  {...field}
+                />
+              )}
+            />
+          </FormGroup>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="neo-form">
-        {/* Username */}
-        <div className={cn('neo-input-wrapper', errors.username && 'has-error')}>
-          <Controller
-            name="username"
-            control={control}
-            render={({ field }) => (
-              <InputGroup
-                placeholder="아이디를 입력하세요"
-                disabled={isLoading}
-                {...field}
-              />
-            )}
-          />
-          {errors.username && (
-            <div className="neo-error-text">{errors.username.message}</div>
-          )}
-        </div>
+          <FormGroup
+            label="비밀번호"
+            labelFor="password"
+            intent={errors.password ? Intent.DANGER : Intent.NONE}
+            helperText={errors.password?.message}
+          >
+            <Controller
+              name="password"
+              control={control}
+              render={({ field }) => (
+                <InputGroup
+                  id="password"
+                  type="password"
+                  large
+                  placeholder="비밀번호를 입력하세요"
+                  disabled={isLoading}
+                  intent={errors.password ? Intent.DANGER : Intent.NONE}
+                  {...field}
+                />
+              )}
+            />
+          </FormGroup>
 
-        {/* Password */}
-        <div className={cn('neo-input-wrapper', errors.password && 'has-error')}>
-          <Controller
-            name="password"
-            control={control}
-            render={({ field }) => (
-              <InputGroup
-                type="password"
-                placeholder="비밀번호를 입력하세요"
-                disabled={isLoading}
-                {...field}
-              />
-            )}
-          />
-          {errors.password && (
-            <div className="neo-error-text">{errors.password.message}</div>
-          )}
-        </div>
-
-        {/* Checkbox */}
-        <div className="neo-checkbox-row">
           <Checkbox
             checked={saveId}
             onChange={(e) => setSaveId((e.target as HTMLInputElement).checked)}
             label="아이디 저장"
+            style={{ marginBottom: 16 }}
           />
-        </div>
 
-        {/* Submit */}
-        <Button
-          type="submit"
-          className="neo-btn-submit"
-          fill
-          loading={isLoading}
-          icon={isLoading ? <Spinner size={SpinnerSize.SMALL} /> : undefined}
-          text="로그인"
-        />
-      </form>
+          <Button
+            type="submit"
+            intent={Intent.PRIMARY}
+            large
+            fill
+            loading={isLoading}
+            text="로그인"
+          />
+        </form>
+      </Card>
 
-      {/* Footer */}
-      <p className="neo-footer">
+      <p className="bp6-text-muted login-footer">
         신규 계정 생성 및 비밀번호 초기화는 관리자에게 문의하세요.
       </p>
-    </>
+    </div>
   );
 }
