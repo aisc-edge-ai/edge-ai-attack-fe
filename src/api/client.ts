@@ -9,6 +9,19 @@ const apiClient = axios.create({
   },
 });
 
+// 토큰 갱신 중복 방지 플래그
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+function onRefreshed(token: string) {
+  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers = [];
+}
+
+function addRefreshSubscriber(cb: (token: string) => void) {
+  refreshSubscribers.push(cb);
+}
+
 // Request interceptor: JWT 토큰 자동 첨부
 apiClient.interceptors.request.use(
   (config) => {
@@ -21,7 +34,7 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor: 401 시 토큰 갱신 시도
+// Response interceptor: 401 시 토큰 갱신 시도 (동시 요청 큐 지원)
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -33,24 +46,41 @@ apiClient.interceptors.response.use(
       const { refreshToken, setAccessToken, clearAuth } =
         useAuthStore.getState();
 
-      if (refreshToken) {
-        try {
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-            refreshToken,
-          });
-          const { accessToken } = response.data;
-          setAccessToken(accessToken);
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return apiClient(originalRequest);
-        } catch {
-          clearAuth();
-          window.location.href = '/login';
-          return Promise.reject(error);
-        }
+      if (!refreshToken) {
+        clearAuth();
+        window.location.href = '/login';
+        return Promise.reject(error);
       }
 
-      clearAuth();
-      window.location.href = '/login';
+      // 이미 갱신 중이면 큐에 추가하고 대기
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          addRefreshSubscriber((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(apiClient(originalRequest));
+          });
+        });
+      }
+
+      isRefreshing = true;
+
+      try {
+        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          refreshToken,
+        });
+        const { accessToken } = response.data;
+        setAccessToken(accessToken);
+        isRefreshing = false;
+        onRefreshed(accessToken);
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return apiClient(originalRequest);
+      } catch {
+        isRefreshing = false;
+        refreshSubscribers = [];
+        clearAuth();
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
     }
 
     return Promise.reject(error);

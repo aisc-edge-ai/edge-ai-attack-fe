@@ -1,33 +1,54 @@
 import { useAttackWizardStore } from '@/stores/attackWizardStore';
+import { useModels } from '@/hooks/useModels';
 import { Icon, type IconName } from '@blueprintjs/core';
 import type { ModelType } from '@/types';
 import { cn } from '@/lib/utils';
 
-const modelOptions: { type: ModelType; icon: string; title: string; subtitle: string }[] = [
-  { type: 'cctv', icon: 'camera', title: 'CCTV', subtitle: '객체 탐지 모델' },
-  { type: 'voice', icon: 'headset', title: 'AI 비서', subtitle: '음성 인식 모델' },
-  { type: 'autonomous', icon: 'drive-time', title: '자율주행', subtitle: '이미지 분류 모델' },
-];
+const MODEL_ICONS: Record<string, string> = {
+  cctv: 'camera',
+  voice: 'headset',
+  autonomous: 'drive-time',
+};
 
 export function StepModelSelect() {
   const { selectedModelType, setModelType } = useAttackWizardStore();
+  const { data: models, isLoading, isError } = useModels();
+
+  if (isLoading) {
+    return (
+      <div className="animate-fade-in">
+        <h5 className="bp6-heading" style={{ marginBottom: 16 }}>테스트할 AI 모델 선택</h5>
+        <div className="bp6-skeleton" style={{ height: 180 }} />
+      </div>
+    );
+  }
+
+  if (isError || !models) {
+    return (
+      <div className="animate-fade-in">
+        <h5 className="bp6-heading" style={{ marginBottom: 16 }}>테스트할 AI 모델 선택</h5>
+        <p className="bp6-text-muted">모델 목록을 불러오는데 실패했습니다.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
       <h5 className="bp6-heading" style={{ marginBottom: 16 }}>테스트할 AI 모델 선택</h5>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {modelOptions.map((opt) => {
-          const isSelected = selectedModelType === opt.type;
+        {models.map((model) => {
+          const isSelected = selectedModelType === model.modelType;
+          const icon = MODEL_ICONS[model.modelType] || 'desktop';
           return (
             <div
-              key={opt.type}
+              key={model.id}
               className={cn('config-select-item', isSelected && 'selected')}
-              onClick={() => setModelType(opt.type)}
+              onClick={() => setModelType(model.modelType as ModelType)}
             >
-              <Icon icon={opt.icon as IconName} size={24} color={isSelected ? '#2D72D2' : '#5F6B7C'} />
+              <Icon icon={icon as IconName} size={24} color={isSelected ? '#2D72D2' : '#5F6B7C'} />
               <div>
-                <div style={{ fontWeight: 600, fontSize: 15 }}>{opt.title}</div>
-                <div style={{ fontSize: 13, color: 'var(--bp-text-secondary)' }}>{opt.subtitle}</div>
+                <div style={{ fontWeight: 600, fontSize: 15 }}>{model.name}</div>
+                <div style={{ fontSize: 13, color: 'var(--bp-text-secondary)' }}>{model.type}</div>
               </div>
             </div>
           );
