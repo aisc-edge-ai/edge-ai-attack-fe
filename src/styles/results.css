@@ -1,0 +1,328 @@
+/* ===========================
+   Results Page Layout (Palantir Style)
+   =========================== */
+.results-page-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: -20px;
+}
+
+.results-tab-bar {
+  background: var(--bp-bg-card);
+  border-bottom: 1px solid var(--bp-border);
+  padding: 0 24px;
+  flex-shrink: 0;
+}
+
+.results-tab-bar .bp6-tabs { margin: 0; }
+.results-tab-bar .bp6-tab-list { padding: 0; }
+.results-tab-bar .bp6-tab { line-height: 44px; }
+
+.results-tab-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.results-summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 24px;
+  background: var(--bp-bg-light);
+}
+
+/* ===========================
+   Results Filter Bar
+   =========================== */
+.results-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: var(--bp-bg-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(16, 22, 26, 0.08);
+}
+
+.results-filter-bar .filter-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* Filter dropdown buttons (inside bp6-button-text wrapper) */
+.filter-dropdown-btn .bp6-button-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-dropdown-label {
+  font-weight: 600;
+  color: var(--bp-text-secondary);
+}
+
+.filter-dropdown-value {
+  font-weight: 500;
+  color: var(--bp-text-muted);
+}
+
+/* ===========================
+   Results Section Cards
+   =========================== */
+.results-section-card {
+  background: var(--bp-bg-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(16, 22, 26, 0.08);
+}
+
+.results-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--bp-text-secondary);
+  border-bottom: 1px solid var(--bp-border);
+  background: var(--bp-bg-card);
+}
+
+/* ===========================
+   Prominent KPI (Palantir Object View)
+   =========================== */
+.prominent-card {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--bp-bg-card);
+}
+
+.prominent-item {
+  padding: 24px 32px;
+  border-right: 1px solid var(--bp-border);
+}
+
+.prominent-item:last-child {
+  border-right: none;
+}
+
+.prominent-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--bp-text-muted);
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.prominent-value {
+  font-size: 30px;
+  font-weight: 800;
+  font-family: Consolas, Monaco, monospace;
+  color: var(--bp-text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prominent-value.danger {
+  color: var(--bp-danger);
+}
+
+.prominent-sub {
+  font-size: 13px;
+  color: var(--bp-text-secondary);
+  font-family: Consolas, Monaco, monospace;
+  margin-top: 4px;
+}
+
+/* ===========================
+   Properties (Charts)
+   =========================== */
+.results-charts-section {
+  padding: 16px;
+  background: var(--bp-bg-card);
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .charts-grid { grid-template-columns: 1fr; }
+}
+
+/* ===========================
+   Unified Results Table
+   =========================== */
+.results-grouped-table {
+  flex: 1;
+}
+
+.results-unified-table {
+  width: 100%;
+  font-size: 13px;
+  table-layout: fixed;
+}
+
+.results-unified-table th {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bp-text-secondary);
+  background: var(--bp-bg-light);
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+
+.results-unified-table td {
+  padding: 8px 16px;
+  vertical-align: middle;
+}
+
+/* 그룹 헤더 행 */
+.results-group-header-row {
+  cursor: pointer;
+  user-select: none;
+}
+
+.results-group-header-row td {
+  background: var(--bp-bg-light);
+  padding: 10px 16px;
+}
+
+.results-group-header-row:hover td {
+  background: rgba(45, 114, 210, 0.04);
+}
+
+.results-group-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.results-table-footer {
+  padding: 12px 24px;
+  font-size: 12px;
+  color: var(--bp-text-muted);
+  border-top: 1px solid var(--bp-border);
+  background: var(--bp-bg-light);
+}
+
+.results-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--bp-text-muted);
+  font-size: 14px;
+}
+
+.results-group-skeleton {
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--bp-border);
+}
+
+/* ===========================
+   Analysis — Prominent (evidence + metadata + metrics)
+   =========================== */
+.analysis-prominent-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--bp-border);
+}
+
+@media (max-width: 900px) {
+  .analysis-prominent-top {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analysis-evidence-side {
+  padding: 16px;
+  border-right: 1px solid var(--bp-border);
+}
+
+@media (max-width: 900px) {
+  .analysis-evidence-side {
+    border-right: none;
+    border-bottom: 1px solid var(--bp-border);
+  }
+}
+
+.analysis-metadata-side {
+  padding: 16px;
+}
+
+.analysis-metadata-side h6 {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--bp-text-secondary);
+  margin: 0 0 12px 0;
+}
+
+.analysis-meta-table {
+  width: 100%;
+}
+
+.analysis-meta-table td {
+  padding: 6px 0;
+  font-size: 13px;
+  vertical-align: top;
+}
+
+.analysis-meta-key {
+  color: var(--bp-text-muted);
+  width: 130px;
+  white-space: nowrap;
+}
+
+.analysis-meta-value {
+  color: var(--bp-text-primary);
+  font-weight: 600;
+}
+
+.analysis-meta-value.primary { color: var(--bp-primary); }
+.analysis-meta-value.danger { color: var(--bp-danger); }
+
+/* Analysis prominent metrics (reuses .prominent-card pattern) */
+.analysis-prominent-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.analysis-prominent-metrics .prominent-item {
+  padding: 20px 24px;
+}
+
+/* Legacy KPI grid (used elsewhere) */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+}
