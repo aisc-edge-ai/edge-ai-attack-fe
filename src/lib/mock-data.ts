@@ -70,10 +70,10 @@ export const MOCK_DATASETS: Dataset[] = [
 // 공격 결과 로그
 // ==========================================
 export const MOCK_RESULTS: AttackResult[] = [
-  { id: 'LOG-20260212-001', date: '2026-02-12 10:30', model: 'YOLOv8', modelType: '객체 탐지', attack: 'Patch-Hiding', successRate: '76.47%', beforeAccuracy: '95.2%', afterAccuracy: '22.4%', risk: 'vulnerable' },
-  { id: 'LOG-20260212-002', date: '2026-02-12 09:15', model: 'DETR', modelType: '객체 탐지', attack: 'FGSM', successRate: '12.50%', beforeAccuracy: '92.1%', afterAccuracy: '80.5%', risk: 'safe' },
-  { id: 'LOG-20260211-003', date: '2026-02-11 16:20', model: 'ResNet50', modelType: '자율주행 (분류)', attack: 'PGD', successRate: '98.56%', beforeAccuracy: '99.8%', afterAccuracy: '1.2%', risk: 'vulnerable' },
-  { id: 'LOG-20260211-004', date: '2026-02-11 14:10', model: 'Whisper', modelType: '음성 인식', attack: '딥보이스 우회', successRate: '56.59%', beforeAccuracy: '96.5%', afterAccuracy: '42.0%', risk: 'warning' },
+  { id: 'LOG-20260212-001', date: '2026-02-12 10:30', model: 'YOLOv8', modelType: '객체 탐지', attack: 'Patch-Hiding', successRate: '76.47%', beforeAccuracy: '95.2%', afterAccuracy: '22.4%', risk: 'vulnerable', beforeAP: '0.996', afterAP: '0.524', beforeAR: '0.997', afterAR: '0.561', attackSuccessRate: '100%', confThreshold: 0.4, averageCIoU: 0.308, dataset: 'demo_hiding_test' },
+  { id: 'LOG-20260212-002', date: '2026-02-12 09:15', model: 'DETR', modelType: '객체 탐지', attack: 'FGSM', successRate: '12.50%', beforeAccuracy: '92.1%', afterAccuracy: '80.5%', risk: 'safe', beforeAP: '0.921', afterAP: '0.805', beforeAR: '0.935', afterAR: '0.812', attackSuccessRate: '12.5%', confThreshold: 0.4, averageCIoU: 0.72, dataset: 'demo_fgsm_test' },
+  { id: 'LOG-20260211-003', date: '2026-02-11 16:20', model: 'ResNet50', modelType: '자율주행 (분류)', attack: 'PGD', successRate: '98.56%', beforeAccuracy: '99.8%', afterAccuracy: '1.2%', risk: 'vulnerable', beforeAP: '0.998', afterAP: '0.012', beforeAR: '0.999', afterAR: '0.015', attackSuccessRate: '98.56%', confThreshold: 0.4, averageCIoU: 0.005, dataset: 'demo_pgd_test' },
+  { id: 'LOG-20260211-004', date: '2026-02-11 14:10', model: 'Whisper', modelType: '음성 인식', attack: '딥보이스 우회', successRate: '56.59%', beforeAccuracy: '96.5%', afterAccuracy: '42.0%', risk: 'warning', beforeAP: '0.965', afterAP: '0.420', beforeAR: '0.970', afterAR: '0.435', attackSuccessRate: '56.59%', confThreshold: 0.5, averageCIoU: 0.41, dataset: 'demo_deepvoice_test' },
 ];
 
 // ==========================================

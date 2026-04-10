@@ -242,9 +242,15 @@
    =========================== */
 .analysis-prominent-top {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) 280px;
   gap: 0;
   border-bottom: 1px solid var(--bp-border);
+}
+
+@media (max-width: 1100px) {
+  .analysis-prominent-top {
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
 }
 
 @media (max-width: 900px) {
@@ -290,26 +296,34 @@
 
 .analysis-meta-key {
   color: var(--bp-text-muted);
-  width: 130px;
+  width: 104px;
   white-space: nowrap;
+  padding-right: 12px;
 }
 
 .analysis-meta-value {
   color: var(--bp-text-primary);
   font-weight: 600;
+  word-break: break-word;
 }
 
 .analysis-meta-value.primary { color: var(--bp-primary); }
 .analysis-meta-value.danger { color: var(--bp-danger); }
 
-/* Analysis prominent metrics (reuses .prominent-card pattern) */
+/* Analysis prominent metrics — 6 columns */
 .analysis-prominent-metrics {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
+}
+
+@media (max-width: 1100px) {
+  .analysis-prominent-metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .analysis-prominent-metrics .prominent-item {
-  padding: 20px 24px;
+  padding: 16px 20px;
 }
 
 /* Legacy KPI grid (used elsewhere) */
@@ -325,4 +339,179 @@
 
 @media (max-width: 640px) {
   .kpi-grid { grid-template-columns: 1fr; }
+}
+
+/* ===========================
+   Analysis — Vulnerability Assessment
+   (Pure typography + single Tag, no background tints)
+   =========================== */
+.assessment-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.assessment-verdict-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.assessment-verdict-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--bp-text-secondary);
+  min-width: 44px;
+}
+
+.assessment-summary {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--bp-text-primary);
+  margin: 0;
+}
+
+.assessment-summary strong {
+  font-weight: 600;
+}
+
+.assessment-summary-num {
+  font-family: var(--bp-font-monospace, 'Consolas', 'Monaco', monospace);
+  font-feature-settings: 'tnum';
+}
+
+.assessment-divider {
+  height: 1px;
+  background: var(--bp-border);
+  margin: 2px 0;
+}
+
+.assessment-sub-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--bp-text-secondary);
+  margin: 0 0 12px 0;
+}
+
+.grade-legend {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grade-legend-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 20px;
+  align-items: baseline;
+  margin: 0;
+}
+
+.grade-legend-term {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bp-text-secondary);
+  margin: 0;
+}
+
+.grade-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.grade-legend-row[data-risk="safe"]       .grade-legend-dot { background: var(--bp-success); }
+.grade-legend-row[data-risk="warning"]    .grade-legend-dot { background: var(--bp-warning); }
+.grade-legend-row[data-risk="vulnerable"] .grade-legend-dot { background: var(--bp-danger); }
+
+.grade-legend-desc {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--bp-text-secondary);
+  margin: 0;
+}
+
+.grade-legend-row[data-active="true"] .grade-legend-term,
+.grade-legend-row[data-active="true"] .grade-legend-desc {
+  color: var(--bp-text-primary);
+}
+
+.grade-legend-row[data-active="true"] .grade-legend-term {
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .grade-legend-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+/* ===========================
+   Analysis — Security Recommendations
+   (Plain numbered list, zero color)
+   =========================== */
+.rec-list {
+  list-style: none;
+  margin: 0;
+  padding: 20px 24px;
+}
+
+.rec-item {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 20px;
+  padding: 18px 0;
+  border-top: 1px solid var(--bp-border);
+}
+
+.rec-item:first-child {
+  border-top: none;
+  padding-top: 4px;
+}
+
+.rec-item:last-child {
+  padding-bottom: 4px;
+}
+
+.rec-number {
+  font-family: var(--bp-font-monospace, 'Consolas', 'Monaco', monospace);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bp-text-muted);
+  font-feature-settings: 'tnum';
+  padding-top: 3px;
+}
+
+.rec-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rec-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bp-text-primary);
+  margin: 0;
+}
+
+.rec-desc {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--bp-text-secondary);
+  margin: 0;
 }
