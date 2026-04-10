@@ -20,8 +20,8 @@ export function AccuracyDropChart() {
             <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
             <Tooltip formatter={(value) => [`${value}%`]} />
             <Legend />
-            <Bar dataKey="before" name="공격 전" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="after" name="공격 후" fill="#cd4246" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="before" name="공격 전" fill="#2d72d2" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="after" name="공격 후" fill="#ac2f33" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

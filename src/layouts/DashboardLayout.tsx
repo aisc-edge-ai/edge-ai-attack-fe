@@ -64,6 +64,16 @@ export function DashboardLayout() {
         <div className="sidebar-footer">
           <Menu className="sidebar-menu">
             <MenuItem
+              icon="notifications"
+              text={collapsed ? undefined : '알림'}
+              onClick={() => { /* TODO: 알림 패널 */ }}
+            />
+            <MenuItem
+              icon="user"
+              text={collapsed ? undefined : '프로필'}
+              onClick={() => { /* TODO: 프로필 메뉴 */ }}
+            />
+            <MenuItem
               icon="log-out"
               text={collapsed ? undefined : '로그아웃'}
               onClick={logout}
@@ -76,14 +86,14 @@ export function DashboardLayout() {
       <main className="app-main">
         <Navbar className="app-header">
           <NavbarGroup align={Alignment.LEFT}>
-            {activeNav && <Icon icon={activeNav.icon} size={20} className="page-header-icon" />}
+            {activeNav && (
+              <div className="page-header-icon-cell">
+                <Icon icon={activeNav.icon} size={24} />
+              </div>
+            )}
             <NavbarHeading className="page-title">
               {pageTitle}
             </NavbarHeading>
-          </NavbarGroup>
-          <NavbarGroup align={Alignment.RIGHT}>
-            <Button minimal icon="notifications" />
-            <Button minimal icon="user" />
           </NavbarGroup>
         </Navbar>
 

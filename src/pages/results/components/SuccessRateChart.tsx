@@ -19,7 +19,7 @@ export function SuccessRateChart() {
             <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
             <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 12 }} />
             <Tooltip formatter={(value) => [`${value}%`, '성공률']} />
-            <Bar dataKey="rate" fill="var(--chart-1)" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="rate" fill="#2d72d2" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

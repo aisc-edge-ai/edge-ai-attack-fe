@@ -12,18 +12,54 @@
   background: var(--bp-bg-card);
   border-bottom: 1px solid var(--bp-border);
   padding: 0 24px;
+  height: 52px;
   flex-shrink: 0;
 }
 
-.results-tab-bar .bp6-tabs { margin: 0; }
-.results-tab-bar .bp6-tab-list { padding: 0; }
-.results-tab-bar .bp6-tab { line-height: 44px; }
+.results-tab-bar .bp6-tabs,
+.results-tab-bar .bp6-tab-list {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* attack 페이지 .step-label 과 동일 톤: 15px / weight 500 → 선택 시 600 */
+.results-tab-bar .bp6-tab {
+  line-height: 52px;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* 비선택 탭: secondary 회색 + medium weight (step-label 기본 상태와 동일) */
+.results-tab-bar .bp6-tab:not([aria-selected="true"]) {
+  color: var(--bp-text-secondary);
+  font-weight: 500;
+}
+
+.results-tab-bar .bp6-tab:not([aria-selected="true"]):hover {
+  color: var(--bp-text-primary);
+}
+
+/* 선택 탭: primary 텍스트 + weight 600 (step-item.active .step-label 과 동일) */
+.results-tab-bar .bp6-tab[aria-selected="true"] {
+  color: var(--bp-text-primary);
+  font-weight: 600;
+}
+
+/* 클릭/포커스 시 파란 테두리(outline/box-shadow) 제거 — 키보드 포커스는 유지 */
+.results-tab-bar .bp6-tab:focus,
+.results-tab-bar .bp6-tab:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
 
 .results-tab-content {
   flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  background: var(--bp-bg-light);
 }
 
 .results-summary-content {
@@ -31,7 +67,10 @@
   flex-direction: column;
   gap: 20px;
   padding: 20px 24px;
-  background: var(--bp-bg-light);
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  box-sizing: border-box;
 }
 
 /* ===========================

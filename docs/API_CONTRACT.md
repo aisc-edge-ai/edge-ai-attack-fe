@@ -215,7 +215,8 @@ Authorization: Bearer {accessToken}
 ## 5. Results
 
 ### GET /results?model=&attack=&search=&page=&size=
-공격 결과 목록 조회 (페이지네이션 + 필터).
+공격 결과 목록 조회 (페이지네이션 + 필터). **리스트 뷰**에서 사용되며, 기본 필드만
+포함해도 됨. 상세 탐지 지표(AP/AR/confThreshold 등)는 `GET /results/{id}` 에 포함.
 
 **Query Params (optional):**
 - `model`: 모델명 필터 (e.g., `"YOLOv8"`)
@@ -246,10 +247,60 @@ Authorization: Bearer {accessToken}
 
 **risk 값:** `"vulnerable"` | `"warning"` | `"safe"`
 
-### GET /results/{id}
-특정 결과 상세 조회.
+> 리스트 응답의 각 row에도 아래 상세 지표 필드들을 **선택적으로** 포함할 수
+> 있음. 프론트는 `undefined` 를 안전하게 fallback 처리함. 단, 리스트 API가
+> 무거워지는 것이 우려되면 detail endpoint 에만 포함해도 무방.
 
-**Response (200):** AttackResult 객체
+### GET /results/{id}
+특정 결과 상세 조회. **모의 공격 결과 페이지의 "상세 결과 분석" 탭**에서 사용.
+기본 필드 + 탐지 지표(Detection metrics) 전체가 포함되어야 함.
+
+**Response (200):**
+```json
+{
+  "id": "LOG-20260212-001",
+  "date": "2026-02-12 10:30",
+  "model": "YOLOv8",
+  "modelType": "객체 탐지",
+  "attack": "Patch-Hiding",
+  "successRate": "76.47%",
+  "beforeAccuracy": "95.2%",
+  "afterAccuracy": "22.4%",
+  "risk": "vulnerable",
+
+  "beforeAP": "0.996",
+  "afterAP": "0.524",
+  "beforeAR": "0.997",
+  "afterAR": "0.561",
+  "attackSuccessRate": "100%",
+  "confThreshold": 0.4,
+  "averageCIoU": 0.308,
+  "dataset": "demo_hiding_test"
+}
+```
+
+#### 탐지 지표 필드 스펙 (Detection Metrics)
+
+| 필드 | 타입 | 필수 | 설명 | 출처 |
+|------|------|------|------|------|
+| `beforeAP` | string | optional | 공격 전 Average Precision. 문자열로 전달 (`"0.996"` 형식) | `clean_map_stats.txt` |
+| `afterAP` | string | optional | 공격 후 Average Precision | `patch_map_stats.txt` |
+| `beforeAR` | string | optional | 공격 전 Average Recall | `clean_map_stats.txt` |
+| `afterAR` | string | optional | 공격 후 Average Recall | `patch_map_stats.txt` |
+| `attackSuccessRate` | string | optional | 공격 성공률 (퍼센트 문자열, e.g., `"100%"`). 기존 `successRate` 보다 구체적인 지표. | 백엔드 계산 |
+| `confThreshold` | number | optional | 객체 탐지 confidence threshold (0.0 ~ 1.0). Metadata 테이블에 노출 | 평가 설정 |
+| `averageCIoU` | number | optional | 평균 Complete IoU (0.0 ~ 1.0). Metadata 테이블에 노출 | 백엔드 계산 |
+| `dataset` | string | optional | 평가에 사용한 테스트 데이터셋 이름. Vulnerability Assessment prose 에 삽입 (e.g., `"해당 YOLOv8은 demo_hiding_test에 대한 Patch 공격에 대해..."`) | 실행 시 입력 |
+
+**프론트엔드 사용처**:
+- `src/pages/results/components/ResultAnalysisTab.tsx`
+- Prominent 6-칸 지표 strip: `beforeAP`, `afterAP`, `beforeAR`, `afterAR`, AP Drop (클라이언트 계산), `attackSuccessRate`
+- Metadata 테이블: `model`, `modelType`, `attack`, `confThreshold`, `averageCIoU`
+- Vulnerability Assessment 요약 문장: `model`, `dataset`, `attack`, `attackSuccessRate`, `risk`
+
+**타입 호환성**: 모든 필드는 optional 이므로 백엔드가 일부만 내려줘도 프론트는 `-` 로
+fallback 렌더. 그러나 객체 탐지(`modelType === "객체 탐지"`) 결과에 대해서는 AP/AR 계열
+필드가 채워지는 것을 권장 (비어있으면 Prominent 6-칸 중 5칸이 `-` 로 표시됨).
 
 ### GET /results/summary
 결과 요약 KPI 데이터.
