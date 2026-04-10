@@ -43,10 +43,15 @@
   --bp-bg-dark: #1C2127;
   --bp-bg-card: #fff;
 
-  /* Chart colors (Emerald) */
-  --chart-1: #34d399;
-  --chart-2: #10b981;
-  --chart-3: #059669;
-  --chart-4: #047857;
-  --chart-5: #065f46;
+  /* Chart colors — Blueprint Blue monochromatic scale
+     NOTE: Recharts <Bar fill> 는 SVG attribute로 넘겨져서 var() 해결이
+     브라우저/버전에 따라 불안정함. 차트 컴포넌트에서는 이 값들을
+     리터럴 hex 로 직접 하드코딩한다. 이 변수는 CSS 규칙(배경·border 등)
+     에서만 사용. */
+  --chart-1: #2d72d2;  /* blue3 — primary, 기본 바 */
+  --chart-2: #215db0;  /* blue2 — 진한 보조 (공격 전 baseline) */
+  --chart-3: #184a90;  /* blue1 — 가장 진함 */
+  --chart-4: #4c90f0;  /* blue4 — 밝은 보조 */
+  --chart-5: #8abbff;  /* blue5 — 가장 밝음 */
+  --chart-danger: #ac2f33;  /* Blueprint red2 — before/after 대비용 */
 }

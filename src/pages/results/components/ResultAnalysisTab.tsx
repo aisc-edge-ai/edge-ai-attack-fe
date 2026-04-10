@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button, Card, Elevation, Icon, Intent, Tag } from '@blueprintjs/core';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { RiskBadge } from '@/components/shared/RiskBadge';
@@ -9,6 +10,39 @@ interface ResultAnalysisTabProps {
 }
 
 export function ResultAnalysisTab({ selectedResult, onGoBack }: ResultAnalysisTabProps) {
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!selectedResult) return;
+    setIsGeneratingPdf(true);
+    try {
+      // 동적 import — @react-pdf/renderer 를 main bundle 에서 분리
+      const [{ pdf }, { ReportPdfDocument }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('./ReportPdfDocument'),
+      ]);
+      const blob = await pdf(<ReportPdfDocument result={selectedResult} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${selectedResult.id}_report.pdf`;
+      // Firefox/일부 Chromium 에서 document 에 연결되지 않은 엘리먼트의 click 을
+      // 무시하는 경우가 있어, 명시적으로 body 에 추가 후 제거한다.
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[PDF 다운로드 실패]', err);
+      alert(
+        'PDF 다운로드에 실패했습니다. 브라우저 콘솔을 확인해주세요.\n' +
+          (err instanceof Error ? err.message : String(err)),
+      );
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   if (!selectedResult) {
     return (
       <EmptyState
@@ -100,7 +134,13 @@ export function ResultAnalysisTab({ selectedResult, onGoBack }: ResultAnalysisTa
               공격 기법: <strong>{selectedResult.attack}</strong> | 수행 일시: {selectedResult.date}
             </p>
           </div>
-          <Button icon="download" text="PDF 다운로드" outlined />
+          <Button
+            icon="download"
+            text="PDF 다운로드"
+            outlined
+            loading={isGeneratingPdf}
+            onClick={handleDownloadPdf}
+          />
         </div>
       </Card>
 
