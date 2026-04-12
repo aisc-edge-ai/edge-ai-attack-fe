@@ -100,7 +100,7 @@ export function useAttackProgress(
           const data = JSON.parse(event.data) as AttackProgress;
           setProgress(data);
         } catch {
-          console.error('Failed to parse WebSocket message');
+          // WebSocket 메시지 파싱 실패 — 무시 (정상 프로토콜 외 메시지)
         }
       };
 

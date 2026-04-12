@@ -1,4 +1,5 @@
 import { Document, Font, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+import { RISK_LABELS, GRADE_CRITERIA, RECOMMENDATIONS } from '@/lib/risk-constants';
 import type { AttackResult, RiskLevel } from '@/types';
 
 /* ===========================
@@ -27,8 +28,6 @@ Font.register({
    (mirrors src/index.css :root --bp-* tokens)
    =========================== */
 const COLORS = {
-  dark: '#1C2127',
-  light: '#F5F8FA',
   white: '#FFFFFF',
   textPrimary: '#182026',
   textSecondary: '#5F6B7C',
@@ -40,175 +39,74 @@ const COLORS = {
   success: '#0D8050',
 };
 
-const RISK_META: Record<RiskLevel, { label: string; color: string }> = {
-  vulnerable: { label: '취약 (Vulnerable)', color: COLORS.danger },
-  warning: { label: '경고 (Warning)', color: COLORS.warning },
-  safe: { label: '안전 (Safe)', color: COLORS.success },
+const RISK_COLORS: Record<RiskLevel, string> = {
+  vulnerable: COLORS.danger,
+  warning: COLORS.warning,
+  safe: COLORS.success,
+};
+
+/** RISK_LABELS(공유) + RISK_COLORS(PDF 전용)를 합쳐 이전 RISK_META 역할 수행 */
+const RISK_RESOLVED: Record<RiskLevel, { label: string; color: string }> = {
+  vulnerable: { label: RISK_LABELS.vulnerable, color: RISK_COLORS.vulnerable },
+  warning: { label: RISK_LABELS.warning, color: RISK_COLORS.warning },
+  safe: { label: RISK_LABELS.safe, color: RISK_COLORS.safe },
 };
 
 /* ===========================
-   Report body constants
-   (복제 원본: src/pages/results/components/ResultAnalysisTab.tsx)
-   =========================== */
-const GRADE_CRITERIA: Array<{
-  risk: RiskLevel;
-  label: string;
-  description: string;
-}> = [
-  {
-    risk: 'safe',
-    label: '안전 (Safe)',
-    description:
-      '공격 성공률이 낮으며, 모델이 입력 교란에도 불구하고 안정적으로 객체를 탐지함. 실제 환경에서 악의적인 입력에 대한 대응력이 충분한 수준으로 판단됨.',
-  },
-  {
-    risk: 'warning',
-    label: '경고 (Warning)',
-    description:
-      '일부 공격 조건에서 탐지 성능 저하가 확인됨. 특정 상황(패치 위치, 크기 등)에 따라 취약점이 발생할 수 있어 추가적인 방어 전략 적용이 필요함.',
-  },
-  {
-    risk: 'vulnerable',
-    label: '취약 (Vulnerable)',
-    description:
-      '공격 성공률이 높으며, 제한된 조건에서도 객체 탐지가 쉽게 무력화됨. 실제 서비스 환경에서 악용 가능성이 높아 즉각적인 보완 조치가 요구됨.',
-  },
-];
-
-const RECOMMENDATIONS: Array<{ num: string; title: string; description: string }> = [
-  {
-    num: '01',
-    title: '적대적 학습 (Adversarial Training)',
-    description:
-      'Patch 공격 데이터를 학습 데이터에 포함하여 모델 재학습 수행. 다양한 위치·크기·패턴의 공격을 반영해 모델의 강건성(robustness) 향상.',
-  },
-  {
-    num: '02',
-    title: '입력 데이터 전처리 적용',
-    description:
-      'Spatial Smoothing, Gaussian Blur, JPEG 압축 등 노이즈 제거 기법 적용. 공격 패치의 고주파 성분을 완화하여 공격 효과 감소.',
-  },
-  {
-    num: '03',
-    title: '이상 패턴 탐지 또는 입력 무결성 검증',
-    description:
-      '입력 이미지 내 비정상적인 국소 패턴이나 패치 삽입 여부를 탐지하는 절차를 추가함. 공격 의심 입력을 사전 차단하거나 별도 후처리하도록 구성하는 것이 바람직함.',
-  },
-];
-
-/* ===========================
-   StyleSheet
+   StyleSheet — single A4 page, typography-first
    =========================== */
 const styles = StyleSheet.create({
-  // ─── Cover Page ─────────────────────────
-  coverPage: {
-    backgroundColor: COLORS.dark,
-    color: COLORS.white,
-    padding: 48,
-    fontFamily: 'Pretendard',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-  },
-  coverHeader: {},
-  coverLogo: {
-    fontSize: 32,
-    fontWeight: 700,
-    color: COLORS.white,
-    letterSpacing: 0.5,
-  },
-  coverSubtitle: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    marginTop: 8,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  coverMeta: {
-    marginTop: 40,
-  },
-  coverMetaLabel: {
-    fontSize: 9,
-    color: COLORS.textMuted,
-    letterSpacing: 1.2,
-    marginTop: 18,
-    marginBottom: 4,
-  },
-  coverMetaValue: {
-    fontSize: 13,
-    color: COLORS.white,
-    fontWeight: 600,
-  },
-  coverStripes: {
-    display: 'flex',
-    flexDirection: 'row',
-    gap: 6,
-    marginTop: 40,
-    height: 120,
-  },
-  stripe: {
-    flex: 1,
-    borderRadius: 2,
-  },
-  coverFooter: {
-    fontSize: 9,
-    color: COLORS.textMuted,
-    letterSpacing: 0.5,
-  },
-
-  // ─── Main Page ───────────────────────────
-  mainPage: {
+  page: {
     backgroundColor: COLORS.white,
     color: COLORS.textPrimary,
-    padding: 40,
-    paddingBottom: 60,
+    paddingTop: 32,
+    paddingBottom: 44,
+    paddingHorizontal: 36,
     fontFamily: 'Pretendard',
     fontSize: 10,
     lineHeight: 1.5,
   },
-  mainHeader: {
+
+  // ─── Header strip ────────────────────────
+  headerStrip: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottom: `1px solid ${COLORS.border}`,
-    paddingBottom: 8,
-    marginBottom: 18,
+    borderBottomWidth: 1,
+    borderBottomStyle: 'solid',
+    borderBottomColor: COLORS.border,
+    paddingBottom: 6,
+    marginBottom: 14,
   },
-  mainHeaderLogo: {
-    fontSize: 11,
-    fontWeight: 700,
-    color: COLORS.textPrimary,
-    letterSpacing: 0.3,
-  },
-  mainHeaderDate: {
+  headerLogo: {
     fontSize: 9,
+    fontWeight: 700,
     color: COLORS.textSecondary,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  headerDate: {
+    fontSize: 8,
+    color: COLORS.textMuted,
   },
 
-  // Title block
-  reportTitle: {
-    fontSize: 22,
-    fontWeight: 700,
-    color: COLORS.textPrimary,
-    marginBottom: 10,
-  },
+  // ─── Title row ───────────────────────────
   titleRow: {
     display: 'flex',
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 20,
+    marginBottom: 4,
   },
-  idChip: {
-    backgroundColor: COLORS.light,
-    borderRadius: 3,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    fontSize: 9,
-    color: COLORS.textSecondary,
+  titleText: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: COLORS.textPrimary,
+    flex: 1,
+    paddingRight: 12,
   },
-  riskTag: {
+  titleRiskTag: {
     borderWidth: 1,
     borderStyle: 'solid',
     borderRadius: 10,
@@ -217,19 +115,31 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: 600,
   },
+  titleMetaLine: {
+    fontSize: 9,
+    color: COLORS.textSecondary,
+    marginBottom: 12,
+  },
 
-  // Section label (11px uppercase muted)
+  // ─── Hairline divider ────────────────────
+  hairline: {
+    borderBottomWidth: 1,
+    borderBottomStyle: 'solid',
+    borderBottomColor: COLORS.border,
+    marginVertical: 10,
+  },
+
+  // ─── Section label ───────────────────────
   sectionLabel: {
     fontSize: 9,
     fontWeight: 600,
     color: COLORS.textSecondary,
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
-    marginTop: 16,
     marginBottom: 8,
   },
 
-  // Summary prose
+  // ─── Summary prose ───────────────────────
   summaryProse: {
     fontSize: 11,
     lineHeight: 1.65,
@@ -239,108 +149,115 @@ const styles = StyleSheet.create({
     fontWeight: 700,
   },
 
-  // Metrics grid — 3 cols × 2 rows
-  metricsGrid: {
+  // ─── Metric strip (6 inline mini cards) ──
+  metricStrip: {
     display: 'flex',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
-  metricCard: {
-    width: '32%',
+  metricStripCard: {
+    flex: 1,
     borderWidth: 1,
     borderStyle: 'solid',
     borderColor: COLORS.border,
     borderRadius: 3,
-    padding: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    alignItems: 'center',
   },
-  metricLabel: {
-    fontSize: 8,
+  metricStripLabel: {
+    fontSize: 7,
     color: COLORS.textSecondary,
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
     textTransform: 'uppercase',
-    marginBottom: 4,
+    marginBottom: 3,
   },
-  metricValue: {
-    fontSize: 16,
+  metricStripValue: {
+    fontSize: 13,
     fontWeight: 700,
     color: COLORS.textPrimary,
   },
 
-  // Metadata table
-  metadataTable: {
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: COLORS.border,
-    borderRadius: 3,
-  },
-  metadataRow: {
+  // ─── 2-column body ───────────────────────
+  bodyColumns: {
     display: 'flex',
     flexDirection: 'row',
+    gap: 18,
+  },
+  bodyColumn: {
+    flex: 1,
+  },
+
+  // Metadata rows (inside left column)
+  metaRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    paddingVertical: 4,
     borderBottomWidth: 1,
     borderBottomStyle: 'solid',
     borderBottomColor: COLORS.border,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
   },
-  metadataRowLast: {
+  metaRowLast: {
     borderBottomWidth: 0,
   },
-  metadataKey: {
-    width: 100,
-    fontSize: 10,
+  metaKey: {
+    width: 78,
+    fontSize: 9,
     color: COLORS.textSecondary,
   },
-  metadataValue: {
+  metaValue: {
     flex: 1,
-    fontSize: 10,
-    color: COLORS.textPrimary,
+    fontSize: 9,
     fontWeight: 600,
+    color: COLORS.textPrimary,
   },
 
-  // Grade rows
+  // Grade rows (inside right column)
   gradeRow: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
-    paddingVertical: 6,
+    gap: 6,
+    paddingVertical: 5,
   },
   gradeDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    marginTop: 5,
+    marginTop: 4,
+  },
+  gradeTextColumn: {
+    flex: 1,
   },
   gradeLabel: {
-    width: 95,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 500,
     color: COLORS.textSecondary,
+    marginBottom: 2,
   },
   gradeDesc: {
-    flex: 1,
-    fontSize: 10,
-    lineHeight: 1.55,
+    fontSize: 9,
+    lineHeight: 1.5,
     color: COLORS.textSecondary,
   },
 
-  // Recommendations
+  // ─── Recommendations (compact numbered list) ──
   recItem: {
     display: 'flex',
     flexDirection: 'row',
-    gap: 12,
-    paddingVertical: 8,
+    gap: 10,
+    paddingVertical: 7,
     borderTopWidth: 1,
     borderTopStyle: 'solid',
     borderTopColor: COLORS.border,
   },
   recItemFirst: {
     borderTopWidth: 0,
+    paddingTop: 2,
   },
   recNumber: {
-    width: 20,
-    fontSize: 10,
+    width: 18,
+    fontSize: 9,
     fontWeight: 500,
     color: COLORS.textMuted,
   },
@@ -348,30 +265,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   recTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 700,
     color: COLORS.textPrimary,
     marginBottom: 3,
   },
   recDesc: {
-    fontSize: 10,
-    lineHeight: 1.55,
+    fontSize: 9,
+    lineHeight: 1.6,
     color: COLORS.textSecondary,
   },
 
-  // Footer (fixed on every main page)
+  // ─── Footer strip (fixed) ────────────────
   footer: {
     position: 'absolute',
-    left: 40,
-    right: 40,
-    bottom: 28,
+    left: 36,
+    right: 36,
+    bottom: 22,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopStyle: 'solid',
+    borderTopColor: COLORS.border,
+    paddingTop: 6,
     fontSize: 8,
     color: COLORS.textMuted,
-    borderTop: `1px solid ${COLORS.border}`,
-    paddingTop: 8,
   },
 });
 
@@ -391,14 +310,14 @@ const computeApDrop = (result: AttackResult): string => {
 };
 
 /* ===========================
-   Document
+   Document — single A4 page
    =========================== */
 interface ReportPdfDocumentProps {
   result: AttackResult;
 }
 
 export function ReportPdfDocument({ result }: ReportPdfDocumentProps) {
-  const risk = RISK_META[result.risk];
+  const risk = RISK_RESOLVED[result.risk];
   const generatedAt = formatNow();
   const apDrop = computeApDrop(result);
 
@@ -426,65 +345,35 @@ export function ReportPdfDocument({ result }: ReportPdfDocumentProps) {
 
   return (
     <Document title={`${result.id} Report`} author="AI안전성연구센터">
-      {/* ─────── Page 1: Dark Cover ─────── */}
-      <Page size="A4" style={styles.coverPage}>
-        <View style={styles.coverHeader}>
-          <Text style={styles.coverLogo}>Edge AI Report</Text>
-          <Text style={styles.coverSubtitle}>AI 보안 모의 공격 리포트</Text>
+      <Page size="A4" style={styles.page}>
+        {/* ─── Header strip ─── */}
+        <View style={styles.headerStrip}>
+          <Text style={styles.headerLogo}>Edge AI 취약성 분석 리포트</Text>
+          <Text style={styles.headerDate}>{generatedAt}</Text>
         </View>
 
-        <View style={styles.coverMeta}>
-          <Text style={styles.coverMetaLabel}>PREPARED FOR</Text>
-          <Text style={styles.coverMetaValue}>AI안전성연구센터</Text>
-
-          <Text style={styles.coverMetaLabel}>SCAN COMPLETED AT</Text>
-          <Text style={styles.coverMetaValue}>{result.date}</Text>
-
-          <Text style={styles.coverMetaLabel}>REPORT GENERATED AT</Text>
-          <Text style={styles.coverMetaValue}>{generatedAt}</Text>
-        </View>
-
-        <View style={styles.coverStripes}>
-          {[
-            COLORS.primary,
-            COLORS.danger,
-            COLORS.warning,
-            COLORS.success,
-            COLORS.textSecondary,
-          ].map((c, i) => (
-            <View key={i} style={[styles.stripe, { backgroundColor: c }]} />
-          ))}
-        </View>
-
-        <Text style={styles.coverFooter}>Provided by AI안전성연구센터</Text>
-      </Page>
-
-      {/* ─────── Page 2: Main Content ─────── */}
-      <Page size="A4" style={styles.mainPage}>
-        {/* Top header strip */}
-        <View style={styles.mainHeader}>
-          <Text style={styles.mainHeaderLogo}>Edge AI Report</Text>
-          <Text style={styles.mainHeaderDate}>{generatedAt}</Text>
-        </View>
-
-        {/* Title + ID chip + risk tag */}
-        <Text style={styles.reportTitle}>
-          Report: {result.model} 취약성 분석
-        </Text>
+        {/* ─── Title row + metadata line ─── */}
         <View style={styles.titleRow}>
-          <Text style={styles.idChip}>{result.id}</Text>
+          <Text style={styles.titleText}>
+            {result.model} 취약성 분석 리포트
+          </Text>
           <Text
             style={[
-              styles.riskTag,
+              styles.titleRiskTag,
               { borderColor: risk.color, color: risk.color },
             ]}
           >
             {risk.label}
           </Text>
         </View>
+        <Text style={styles.titleMetaLine}>
+          {result.attack} · {result.id} · {result.date}
+        </Text>
 
-        {/* Summary */}
-        <Text style={styles.sectionLabel}>Summary of test results</Text>
+        <View style={styles.hairline} />
+
+        {/* ─── 요약 ─── */}
+        <Text style={styles.sectionLabel}>요약</Text>
         <Text style={styles.summaryProse}>
           해당 <Text style={styles.bold}>{result.model}</Text>은{' '}
           <Text style={styles.bold}>
@@ -500,15 +389,17 @@ export function ReportPdfDocument({ result }: ReportPdfDocumentProps) {
           수준으로 나타났다.
         </Text>
 
-        {/* Data — 6 metric cards */}
-        <Text style={styles.sectionLabel}>Data</Text>
-        <View style={styles.metricsGrid}>
+        <View style={styles.hairline} />
+
+        {/* ─── 주요 지표 (6 mini cards in 1 row) ─── */}
+        <Text style={styles.sectionLabel}>주요 지표</Text>
+        <View style={styles.metricStrip}>
           {metrics.map((m) => (
-            <View key={m.label} style={styles.metricCard}>
-              <Text style={styles.metricLabel}>{m.label}</Text>
+            <View key={m.label} style={styles.metricStripCard}>
+              <Text style={styles.metricStripLabel}>{m.label}</Text>
               <Text
                 style={[
-                  styles.metricValue,
+                  styles.metricStripValue,
                   m.danger && { color: COLORS.danger },
                 ]}
               >
@@ -518,57 +409,71 @@ export function ReportPdfDocument({ result }: ReportPdfDocumentProps) {
           ))}
         </View>
 
-        {/* Metadata */}
-        <Text style={styles.sectionLabel}>Metadata</Text>
-        <View style={styles.metadataTable}>
-          {metadataRows.map(([k, v], idx) => (
-            <View
-              key={k}
-              style={[
-                styles.metadataRow,
-                idx === metadataRows.length - 1 && styles.metadataRowLast,
-              ]}
-            >
-              <Text style={styles.metadataKey}>{k}</Text>
-              <Text style={styles.metadataValue}>{v}</Text>
-            </View>
-          ))}
+        <View style={styles.hairline} />
+
+        {/* ─── 2-column body: 모델 정보 | 등급 기준 ─── */}
+        <View style={styles.bodyColumns}>
+          {/* Left column — 모델 정보 */}
+          <View style={styles.bodyColumn}>
+            <Text style={styles.sectionLabel}>모델 정보</Text>
+            {metadataRows.map(([k, v], idx) => (
+              <View
+                key={k}
+                style={[
+                  styles.metaRow,
+                  idx === metadataRows.length - 1 && styles.metaRowLast,
+                ]}
+              >
+                <Text style={styles.metaKey}>{k}</Text>
+                <Text style={styles.metaValue}>{v}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Right column — 등급 기준 */}
+          <View style={styles.bodyColumn}>
+            <Text style={styles.sectionLabel}>등급 기준</Text>
+            {GRADE_CRITERIA.map((g) => {
+              const isCurrent = g.risk === result.risk;
+              return (
+                <View key={g.risk} style={styles.gradeRow}>
+                  <View
+                    style={[
+                      styles.gradeDot,
+                      { backgroundColor: RISK_RESOLVED[g.risk].color },
+                    ]}
+                  />
+                  <View style={styles.gradeTextColumn}>
+                    <Text
+                      style={[
+                        styles.gradeLabel,
+                        isCurrent && {
+                          color: COLORS.textPrimary,
+                          fontWeight: 700,
+                        },
+                      ]}
+                    >
+                      {g.label}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.gradeDesc,
+                        isCurrent && { color: COLORS.textPrimary },
+                      ]}
+                    >
+                      {g.description}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
         </View>
 
-        {/* Grade criteria */}
-        <Text style={styles.sectionLabel}>등급 기준 및 해석</Text>
-        {GRADE_CRITERIA.map((g) => {
-          const isCurrent = g.risk === result.risk;
-          return (
-            <View key={g.risk} style={styles.gradeRow}>
-              <View
-                style={[
-                  styles.gradeDot,
-                  { backgroundColor: RISK_META[g.risk].color },
-                ]}
-              />
-              <Text
-                style={[
-                  styles.gradeLabel,
-                  isCurrent && { color: COLORS.textPrimary, fontWeight: 700 },
-                ]}
-              >
-                {g.label}
-              </Text>
-              <Text
-                style={[
-                  styles.gradeDesc,
-                  isCurrent && { color: COLORS.textPrimary },
-                ]}
-              >
-                {g.description}
-              </Text>
-            </View>
-          );
-        })}
+        <View style={styles.hairline} />
 
-        {/* Security Recommendations */}
-        <Text style={styles.sectionLabel}>Security Recommendations</Text>
+        {/* ─── 보안 권고사항 ─── */}
+        <Text style={styles.sectionLabel}>보안 권고사항</Text>
         {RECOMMENDATIONS.map((r, idx) => (
           <View
             key={r.num}
@@ -582,14 +487,10 @@ export function ReportPdfDocument({ result }: ReportPdfDocumentProps) {
           </View>
         ))}
 
-        {/* Footer with page number */}
+        {/* ─── Footer strip (fixed at bottom) ─── */}
         <View style={styles.footer} fixed>
-          <Text>Provided by AI안전성연구센터</Text>
-          <Text
-            render={({ pageNumber, totalPages }) =>
-              `${pageNumber} / ${totalPages}`
-            }
-          />
+          <Text>AI안전성연구센터 · Confidential</Text>
+          <Text>Generated {generatedAt}</Text>
         </View>
       </Page>
     </Document>
