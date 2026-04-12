@@ -66,12 +66,14 @@ export function DashboardLayout() {
             <MenuItem
               icon="notifications"
               text={collapsed ? undefined : '알림'}
-              onClick={() => { /* TODO: 알림 패널 */ }}
+              disabled
+              onClick={() => { /* 미구현: 알림 패널 (placeholder) */ }}
             />
             <MenuItem
               icon="user"
               text={collapsed ? undefined : '프로필'}
-              onClick={() => { /* TODO: 프로필 메뉴 */ }}
+              disabled
+              onClick={() => { /* 미구현: 프로필 메뉴 (placeholder) */ }}
             />
             <MenuItem
               icon="log-out"

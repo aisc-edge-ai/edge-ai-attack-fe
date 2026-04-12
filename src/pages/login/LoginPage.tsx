@@ -70,7 +70,7 @@ export function LoginPage() {
         엣지 AI 취약성 분석 시스템에 로그인하세요.
       </p>
 
-      <Card elevation={Elevation.TWO} className="login-card">
+      <Card elevation={Elevation.ZERO} className="login-card">
         <form onSubmit={handleSubmit(onSubmit)}>
           <FormGroup
             label="아이디"

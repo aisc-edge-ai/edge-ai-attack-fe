@@ -74,7 +74,7 @@ apiClient.interceptors.response.use(
         onRefreshed(accessToken);
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
-      } catch {
+      } catch (_refreshErr: unknown) {
         isRefreshing = false;
         refreshSubscribers = [];
         clearAuth();
