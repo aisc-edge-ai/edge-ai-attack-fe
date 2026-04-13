@@ -1,94 +1,101 @@
 /* ===========================
-   Login Page — Manus 다크 테마 + Spotlight Grid Reveal
-   Blueprint 6 디자인 시스템 유지
+   Login Page — 좌우 분할 레이아웃
+   좌측: 다크 배경 + 로그인 폼
+   우측: 3D 로고 이미지 패널
    =========================== */
 
-/* ---- 페이지 레이아웃 ---- */
+/* ─── 전체 래퍼: 2-column grid ─── */
 .login-page {
   min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #0f1114;
+}
+
+/* ─── 좌측: 로그인 폼 영역 ─── */
+.login-left {
   display: flex;
   flex-direction: column;
-  background: #0f1114;
+  padding: 32px 48px;
   position: relative;
-  overflow: hidden;
 }
 
-/* ---- 점 격자 배경 (기본 — 어두운 상태) ---- */
-.login-bg-pattern {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.06) 1px,
-    transparent 1px
-  );
-  background-size: 24px 24px;
-}
-
-/* ---- Spotlight: 마우스 주변 격자가 밝아지는 효과 ---- */
-.login-spotlight {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background-image: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.35) 1px,
-    transparent 1px
-  );
-  background-size: 24px 24px;
-
-  mask-image: radial-gradient(
-    450px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    black 0%,
-    transparent 100%
-  );
-  -webkit-mask-image: radial-gradient(
-    450px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    black 0%,
-    transparent 100%
-  );
-}
-
-
-/* ---- 상단 로고 바 ---- */
-.login-top-bar {
-  position: relative;
-  z-index: 2;
-  padding: 24px 32px;
+.login-left-header {
+  flex-shrink: 0;
 }
 
 .login-brand-logo {
-  height: 28px;
+  height: 48px;
   filter: brightness(0) invert(1);
   opacity: 0.9;
 }
 
-/* ---- 중앙 폼 영역 ---- */
-.login-center {
+.login-left-center {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  z-index: 2;
-  padding: 20px;
+  padding: 20px 0;
 }
 
-/* ---- 폼 컨테이너 (글래스모피즘) ---- */
+.login-left-footer {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 16px 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.04em;
+}
+
+/* ─── 우측: 이미지 패널 ─── */
+.login-right {
+  position: relative;
+  overflow: hidden;
+}
+
+.login-right-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.login-right-title {
+  position: absolute;
+  right: 40px;
+  bottom: 40px;
+  text-align: right;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.login-right-title-sub {
+  font-size: 36px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.login-right-title-main {
+  font-size: 64px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 3px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── 폼 컨테이너 ─── */
 .login-form-container {
   text-align: center;
   width: 100%;
   max-width: 400px;
   animation: loginFadeUp 0.6s ease-out;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
   padding: 40px 36px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 @keyframes loginFadeUp {
@@ -102,13 +109,13 @@
   }
 }
 
-/* ---- 로고 아이콘 ---- */
+/* ─── 로고 아이콘 ─── */
 .login-logo-icon {
   color: var(--bp-primary);
   margin-bottom: 20px;
 }
 
-/* ---- 타이틀 ---- */
+/* ─── 타이틀 ─── */
 .login-title {
   font-size: 24px !important;
   font-weight: 700;
@@ -116,14 +123,14 @@
   margin-bottom: 8px;
 }
 
-/* ---- 서브타이틀 ---- */
+/* ─── 서브타이틀 ─── */
 .login-subtitle {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.5);
   margin-bottom: 36px;
 }
 
-/* ---- 카드 (투명 다크) ---- */
+/* ─── 카드 (투명 다크) ─── */
 .login-card {
   text-align: left;
   padding: 0;
@@ -132,7 +139,7 @@
   border: none !important;
 }
 
-/* ---- 폼 그룹 간격 ---- */
+/* ─── 폼 그룹 간격 ─── */
 .login-card .bp6-form-group {
   margin-bottom: 20px;
 }
@@ -143,7 +150,7 @@
   font-weight: 500;
 }
 
-/* ---- 인풋 필드 ---- */
+/* ─── 인풋 필드 ─── */
 .login-card .bp6-input-group.bp6-large .bp6-input {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -165,7 +172,7 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* ---- 에러 상태 ---- */
+/* ─── 에러 상태 ─── */
 .login-card .bp6-input-group.bp6-large .bp6-input.bp6-intent-danger {
   border-color: var(--bp-danger);
   box-shadow: 0 0 0 1px var(--bp-danger);
@@ -176,14 +183,14 @@
   font-size: 12px;
 }
 
-/* ---- 체크박스 ---- */
+/* ─── 체크박스 ─── */
 .login-card .bp6-checkbox {
   color: rgba(255, 255, 255, 0.6);
   font-size: 13px;
   margin-bottom: 20px;
 }
 
-/* ---- 로그인 버튼 ---- */
+/* ─── 로그인 버튼 ─── */
 .login-card .bp6-button.bp6-intent-primary.bp6-large {
   border-radius: 8px;
   height: 44px;
@@ -203,42 +210,40 @@
   box-shadow: none;
 }
 
-/* ---- 폼 하단 안내 ---- */
+/* ─── 폼 하단 안내 ─── */
 .login-footer {
   margin-top: 28px;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.35);
 }
 
-/* ---- 페이지 하단 푸터 ---- */
-.login-bottom-bar {
-  position: relative;
-  z-index: 2;
-  padding: 20px 32px;
-  text-align: center;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  letter-spacing: 0.04em;
+/* ─── 반응형: 태블릿 이하에서 이미지 숨김 ─── */
+@media (max-width: 900px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+  .login-right {
+    display: none;
+  }
+  .login-left {
+    padding: 24px 32px;
+  }
 }
 
-/* ---- 반응형 ---- */
 @media (max-width: 480px) {
-  .login-center {
-    padding: 16px;
+  .login-left {
+    padding: 16px 20px;
+  }
+  .login-left-center {
+    padding: 16px 0;
   }
   .login-form-container {
     max-width: 100%;
-  }
-  .login-top-bar {
-    padding: 16px 20px;
+    padding: 24px 20px;
   }
 }
 
-/* ---- 접근성: reduced motion ---- */
+/* ─── 접근성: reduced motion ─── */
 @media (prefers-reduced-motion: reduce) {
   .login-form-container {
     animation: none;

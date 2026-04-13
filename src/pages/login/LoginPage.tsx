@@ -64,7 +64,6 @@ export function LoginPage() {
 
   return (
     <div className="login-form-container">
-      <Icon icon="shield" size={28} className="login-logo-icon" />
       <h2 className="bp6-heading login-title">환영합니다</h2>
       <p className="bp6-text-muted login-subtitle">
         엣지 AI 취약성 분석 시스템에 로그인하세요.
