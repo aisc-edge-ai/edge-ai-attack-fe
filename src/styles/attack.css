@@ -85,6 +85,27 @@
   padding: 20px;
 }
 
+.config-panel-header {
+  margin-bottom: 18px;
+}
+
+.config-panel-header .bp6-heading {
+  margin: 0 0 10px;
+}
+
+.config-panel-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 30px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.config-panel-nav .bp6-button {
+  flex-shrink: 0;
+}
+
 .config-panel-footer {
   padding: 12px 20px;
   border-top: 1px solid var(--bp-border);
@@ -177,6 +198,14 @@
 
 .attack-category-header:hover { background: var(--bp-bg-light); }
 
+.attack-category-header.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: grayscale(1);
+}
+
+.attack-category-header.disabled:hover { background: transparent; }
+
 .attack-category-title {
   display: flex;
   align-items: center;
@@ -212,6 +241,15 @@
   border-color: var(--bp-primary) !important;
   background: rgba(45, 114, 210, 0.06) !important;
 }
+
+.attack-item-card.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: grayscale(1);
+  background: #eef1f4 !important;
+}
+
+.attack-item-card.disabled:hover { border-color: var(--bp-border) !important; }
 
 .attack-item-content {
   display: flex;
@@ -300,6 +338,23 @@
 .dataset-list-right { display: flex; align-items: center; gap: 8px; }
 .dataset-list-right .bp6-tag { font-size: 10px; }
 .dataset-list-size { font-size: 11px; color: var(--bp-text-muted); font-family: Consolas, Monaco, monospace; }
+
+.dataset-empty-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 8px 28px;
+  padding: 10px 12px;
+  border: 1px dashed var(--bp-border);
+  border-radius: 3px;
+  background: var(--bp-bg-light);
+  color: var(--bp-text-secondary);
+  font-size: 13px;
+}
+
+.dataset-empty-state .bp6-icon {
+  color: var(--bp-text-muted);
+}
 
 /* ===========================
    Config Panel Items

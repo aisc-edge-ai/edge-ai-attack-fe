@@ -94,17 +94,17 @@ src/
 
 | 메서드 | 경로 | 용도 |
 |--------|------|------|
-| POST | `/api/auth/login` | 로그인 |
-| POST | `/api/auth/refresh` | 토큰 갱신 |
-| GET | `/api/attacks?modelType=` | 공격 목록 |
-| POST | `/api/attack/execute` | 공격 실행 → `{ attackId }` |
+| POST | `/auth/login` | 로그인 |
+| POST | `/auth/refresh` | 토큰 갱신 |
+| GET | `/attack?modelType=` | 공격 목록 |
+| POST | `/attack/execute` | 공격 실행 → `{ attackId }` |
 | WS | `/ws/attack/{id}/progress` | 진행률 |
-| GET | `/api/datasets?sort=` | 데이터셋 목록 |
-| POST | `/api/datasets/save` | 공격 데이터 저장 |
-| GET | `/api/results` | 결과 목록 |
-| GET | `/api/results/{id}` | 결과 상세 |
-| GET | `/api/results/summary` | 결과 요약 KPI |
-| GET | `/api/dashboard/summary` | 대시보드 KPI |
+| GET | `/datasets?sort=` | 데이터셋 목록 |
+| POST | `/datasets/save` | 공격 데이터 저장 |
+| GET | `/results` | 결과 목록 |
+| GET | `/results/{id}` | 결과 상세 |
+| GET | `/results/summary` | 결과 요약 KPI |
+| GET | `/dashboard/summary` | 대시보드 KPI |
 
 ## 코딩 규칙
 

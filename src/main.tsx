@@ -10,6 +10,16 @@ async function enableMocking() {
       onUnhandledRequest: 'bypass',
     });
   }
+
+  // MSW 꺼진 상태에서 이전 세션의 service worker가 남아있으면 언등록.
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(
+      regs
+        .filter((r) => r.active?.scriptURL.includes('mockServiceWorker'))
+        .map((r) => r.unregister())
+    );
+  }
 }
 
 enableMocking().then(() => {

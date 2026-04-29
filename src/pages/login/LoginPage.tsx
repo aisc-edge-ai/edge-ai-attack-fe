@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/stores/authStore';
 import {
   Card,
   Elevation,
@@ -11,7 +13,6 @@ import {
   Button,
   Checkbox,
   Intent,
-  Icon,
 } from '@blueprintjs/core';
 import { AppToaster } from '@/lib/toaster';
 
@@ -24,6 +25,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
   const { login } = useAuth();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [isLoading, setIsLoading] = useState(false);
   const [saveId, setSaveId] = useState(() => {
     return localStorage.getItem('savedUsername') !== null;
@@ -40,6 +42,10 @@ export function LoginPage() {
       password: '',
     },
   });
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);

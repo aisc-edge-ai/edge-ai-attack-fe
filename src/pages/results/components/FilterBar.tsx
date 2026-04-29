@@ -1,61 +1,41 @@
-import { Button, InputGroup, Menu, MenuItem, MenuDivider, Icon, Popover, Checkbox, Tag } from '@blueprintjs/core';
+import { Button, InputGroup, Menu, MenuItem, MenuDivider, Icon, Popover, Checkbox, Tag, Tooltip } from '@blueprintjs/core';
+
+export interface FilterOption {
+  value: string;
+  label: string;
+}
 
 interface FilterBarProps {
   modelFilter: string;
   attackFilter: string;
   techniqueFilter: string[];
   search: string;
+  modelOptions: FilterOption[];
+  attackOptions: FilterOption[];
+  techniqueOptions: FilterOption[];
   onModelChange: (value: string) => void;
   onAttackChange: (value: string) => void;
   onTechniqueChange: (values: string[]) => void;
   onSearchChange: (value: string) => void;
 }
 
-const MODEL_OPTIONS = [
-  { value: 'all', label: '모든 모델' },
-  { value: 'YOLOv8', label: '객체 탐지 (CCTV)' },
-  { value: 'Whisper', label: '음성 인식 (비서)' },
-  { value: 'ResNet50', label: '이미지 분류 (자율주행)' },
-];
-
-const ATTACK_OPTIONS = [
-  { value: 'all', label: '모든 공격 기법' },
-  { value: 'Patch-Hiding', label: '적대적 패치' },
-  { value: 'FGSM', label: 'FGSM / PGD' },
-  { value: '딥보이스 우회', label: '음성 우회' },
-];
-
-const TECHNIQUE_MAP: Record<string, { value: string; label: string }[]> = {
-  'Patch-Hiding': [
-    { value: 'Hiding', label: 'Hiding' },
-    { value: 'Creating', label: 'Creating' },
-    { value: 'Altering', label: 'Altering' },
-  ],
-  'FGSM': [
-    { value: 'FGSM', label: 'FGSM' },
-    { value: 'BIM', label: 'BIM' },
-    { value: 'PGD', label: 'PGD' },
-  ],
-  '딥보이스 우회': [
-    { value: '딥보이스', label: '딥보이스 우회' },
-  ],
-};
-
 export function FilterBar({
   modelFilter,
   attackFilter,
   techniqueFilter,
   search,
+  modelOptions,
+  attackOptions,
+  techniqueOptions,
   onModelChange,
   onAttackChange,
   onTechniqueChange,
   onSearchChange,
 }: FilterBarProps) {
-  const selectedModel = MODEL_OPTIONS.find((o) => o.value === modelFilter);
-  const selectedAttack = ATTACK_OPTIONS.find((o) => o.value === attackFilter);
-  const isModelSelected = modelFilter !== 'all';
+  const selectedModel = modelOptions.find((o) => o.value === modelFilter) ?? modelOptions[0];
+  const selectedAttack = attackOptions.find((o) => o.value === attackFilter) ?? attackOptions[0];
   const isAttackSelected = attackFilter !== 'all';
-  const techniques = isAttackSelected ? (TECHNIQUE_MAP[attackFilter] || []) : [];
+  const techniques = isAttackSelected ? techniqueOptions : [];
 
   const toggleTechnique = (value: string) => {
     if (techniqueFilter.includes(value)) {
@@ -71,6 +51,19 @@ export function FilterBar({
       ? techniqueFilter[0]
       : `${techniqueFilter[0]} 외 ${techniqueFilter.length - 1}개`;
 
+  const hasActiveFilter =
+    modelFilter !== 'all' ||
+    attackFilter !== 'all' ||
+    techniqueFilter.length > 0 ||
+    search !== '';
+
+  const handleResetFilters = () => {
+    onModelChange('all');
+    onAttackChange('all');
+    onTechniqueChange([]);
+    onSearchChange('');
+  };
+
   return (
     <div className="results-filter-bar">
       <div className="filter-group">
@@ -78,7 +71,7 @@ export function FilterBar({
         <Popover
           content={
             <Menu>
-              {MODEL_OPTIONS.map((opt) => (
+              {modelOptions.map((opt) => (
                 <MenuItem
                   key={opt.value}
                   text={opt.label}
@@ -108,7 +101,7 @@ export function FilterBar({
         <Popover
           content={
             <Menu>
-              {ATTACK_OPTIONS.map((opt) => (
+              {attackOptions.map((opt) => (
                 <MenuItem
                   key={opt.value}
                   text={opt.label}
@@ -123,9 +116,8 @@ export function FilterBar({
           }
           placement="bottom-start"
           minimal
-          disabled={!isModelSelected}
         >
-          <Button className="filter-dropdown-btn" rightIcon="caret-down" outlined disabled={!isModelSelected}>
+          <Button className="filter-dropdown-btn" rightIcon="caret-down" outlined>
             <Icon icon="shield" size={14} />
             <span className="filter-dropdown-label">공격:</span>
             <span className="filter-dropdown-value">{selectedAttack?.label}</span>
@@ -182,6 +174,18 @@ export function FilterBar({
             )}
           </Button>
         </Popover>
+
+        {/* 모든 필터 초기화 */}
+        <Tooltip content="모든 필터 초기화" placement="bottom">
+          <Button
+            className="filter-reset-btn"
+            icon="filter-remove"
+            outlined
+            disabled={!hasActiveFilter}
+            onClick={handleResetFilters}
+            aria-label="모든 필터 초기화"
+          />
+        </Tooltip>
       </div>
 
       <InputGroup

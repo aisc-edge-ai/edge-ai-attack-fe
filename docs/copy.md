@@ -74,8 +74,7 @@
 
 | Device Name | Status Label | Model Type |
 |-------------|-------------|------------|
-| CCTV Node 01 | Online | Object Detection (YOLOv8) |
-| CCTV Node 02 | Vulnerability Alert | Object Detection (DETR) |
+| CCTV Node 01 | Online | Object Detection (YOLOv5) |
 | Voice Assistant Hub | Disconnected | Speech Recognition (Whisper) |
 | Auto-Drive Vision | Online | Image Classification (ResNet) |
 

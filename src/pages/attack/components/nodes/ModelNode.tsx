@@ -7,7 +7,7 @@ const MODEL_LABELS: Record<string, { icon: string; title: string; subtitle: stri
   autonomous: { icon: 'drive-time', title: '자율주행', subtitle: '이미지 분류' },
 };
 
-export function ModelNode({ data }: { data: { modelType: string } }) {
+export function ModelNode({ data }: { data: { modelName?: string; modelType: string } }) {
   const info = data.modelType ? MODEL_LABELS[data.modelType] : null;
 
   return (
@@ -16,7 +16,9 @@ export function ModelNode({ data }: { data: { modelType: string } }) {
       <div className="workflow-node workflow-node-model">
         <Icon icon={info ? info.icon as IconName : 'help'} size={20} />
         <div>
-          <div className="workflow-node-title">{info ? info.title : '모델 선택 대기'}</div>
+          <div className="workflow-node-title">
+            {data.modelName || (info ? info.title : '모델 선택 대기')}
+          </div>
           <div className="workflow-node-sub">{info ? info.subtitle : '모델을 선택하세요'}</div>
         </div>
       </div>

@@ -1,0 +1,241 @@
+/* ===========================
+   Attack Progress Panel (inline + dock 공용)
+   =========================== */
+.attack-progress-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.attack-progress-panel--inline {
+  padding: 4px 0;
+}
+
+.attack-progress-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.attack-progress-panel-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bp-text-primary);
+  flex: 1;
+}
+
+.attack-progress-panel-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.attack-progress-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attack-progress-panel-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+}
+
+.attack-progress-panel-sub {
+  font-size: 12px;
+  color: var(--bp-text-muted);
+}
+
+.attack-progress-panel-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bp-border);
+}
+
+.attack-progress-panel-footer .bp6-button {
+  justify-content: flex-start;
+}
+
+.attack-progress-panel-save-form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.attack-progress-panel-save-form .bp6-input-group {
+  flex: 1;
+}
+
+/* dock variant — 더 컴팩트 */
+.attack-progress-panel--dock {
+  gap: 10px;
+}
+
+.attack-progress-panel--dock .attack-progress-panel-header {
+  padding-bottom: 6px;
+}
+
+.attack-progress-panel--dock .attack-progress-panel-title {
+  font-size: 14px;
+}
+
+/* ===========================
+   Floating Dock
+   =========================== */
+.attack-progress-dock {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 16px;
+  border-left: 3px solid var(--bp-primary);
+  animation: dock-pop-in 180ms ease-out;
+}
+
+@keyframes dock-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.attack-progress-dock-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.attack-progress-dock-toolbar-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.attack-progress-dock-hint {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===========================
+   Floating Dock — Minimized
+   =========================== */
+.attack-progress-dock-mini {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bp-bg-card);
+  box-shadow: 0 4px 16px rgba(16, 22, 26, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 30;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+.attack-progress-dock-mini:hover {
+  transform: scale(1.04);
+}
+
+.attack-progress-dock-mini:focus-visible {
+  outline: 2px solid var(--bp-primary);
+  outline-offset: 2px;
+}
+
+.attack-progress-dock-mini-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--dock-ring-color, var(--bp-primary)) var(--dock-ring-deg, 0deg),
+    rgba(16, 22, 26, 0.08) var(--dock-ring-deg, 0deg)
+  );
+  -webkit-mask: radial-gradient(circle, transparent 26px, #000 27px);
+          mask: radial-gradient(circle, transparent 26px, #000 27px);
+  pointer-events: none;
+}
+
+.attack-progress-dock-mini .bp6-icon {
+  color: var(--bp-text-secondary);
+}
+
+.attack-progress-dock-mini-pct {
+  position: absolute;
+  bottom: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--bp-text-secondary);
+}
+
+/* ===========================
+   Sidebar Running Indicator
+   =========================== */
+.sidebar-menu-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-running-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bp-primary);
+  box-shadow: 0 0 0 0 rgba(45, 114, 210, 0.55);
+  animation: sidebar-running-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes sidebar-running-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(45, 114, 210, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(45, 114, 210, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(45, 114, 210, 0);
+  }
+}
+
+/* collapsed 사이드바에서는 dot이 메뉴 아이템 우상단에 작게 */
+.app-sidebar.collapsed .has-running-indicator {
+  position: relative;
+}
+
+.app-sidebar.collapsed .has-running-indicator::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--bp-primary);
+  animation: sidebar-running-pulse 1.6s ease-in-out infinite;
+}

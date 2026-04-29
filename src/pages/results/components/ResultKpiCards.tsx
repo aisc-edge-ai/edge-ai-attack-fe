@@ -1,9 +1,20 @@
 import type { ResultSummary } from '@/types';
+import { cn } from '@/lib/utils';
 
 interface ResultKpiCardsProps {
   summary: ResultSummary | undefined;
   isLoading: boolean;
 }
+
+const getTextValueClass = (value: string | undefined) => {
+  const length = value?.length ?? 0;
+  return cn(
+    'prominent-value',
+    'text-value',
+    length > 24 && 'compact',
+    length > 42 && 'dense'
+  );
+};
 
 export function ResultKpiCards({ summary, isLoading }: ResultKpiCardsProps) {
   if (isLoading) {
@@ -37,7 +48,10 @@ export function ResultKpiCards({ summary, isLoading }: ResultKpiCardsProps) {
 
       <div className="prominent-item">
         <div className="prominent-label">Most Vulnerable Model</div>
-        <div className="prominent-value">
+        <div
+          className={getTextValueClass(summary?.mostVulnerableModel.name)}
+          title={summary?.mostVulnerableModel.name}
+        >
           {summary?.mostVulnerableModel.name ?? '-'}
         </div>
         <div className="prominent-sub">({summary?.mostVulnerableModel.rate})</div>
@@ -45,7 +59,10 @@ export function ResultKpiCards({ summary, isLoading }: ResultKpiCardsProps) {
 
       <div className="prominent-item">
         <div className="prominent-label">Critical Attack Vector</div>
-        <div className="prominent-value">
+        <div
+          className={getTextValueClass(summary?.mostLethalAttack.name)}
+          title={summary?.mostLethalAttack.name}
+        >
           {summary?.mostLethalAttack.name ?? '-'}
         </div>
         <div className="prominent-sub">({summary?.mostLethalAttack.rate})</div>

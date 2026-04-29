@@ -1,6 +1,7 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { API_BASE_URL } from '@/lib/constants';
 import { useAuthStore } from '@/stores/authStore';
+import type { ApiError } from '@/types';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -74,7 +75,7 @@ apiClient.interceptors.response.use(
         onRefreshed(accessToken);
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
-      } catch (_refreshErr: unknown) {
+      } catch {
         isRefreshing = false;
         refreshSubscribers = [];
         clearAuth();
@@ -88,3 +89,12 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
+
+/** API 에러에서 사용자 표시용 메시지 추출 */
+export function getErrorMessage(error: unknown, fallback = '요청 처리 중 오류가 발생했습니다.'): string {
+  if (error instanceof AxiosError && error.response?.data) {
+    const data = error.response.data as ApiError;
+    if (data.message) return data.message;
+  }
+  return fallback;
+}

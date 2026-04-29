@@ -8,6 +8,12 @@ import { AttackExecutionPage } from '@/pages/attack/AttackExecutionPage';
 import { ResultsPage } from '@/pages/results/ResultsPage';
 import { ProjectManagementPage } from '@/pages/projects/ProjectManagementPage';
 
+const routerBasename =
+  typeof window !== 'undefined' &&
+  (window.location.pathname === '/edge-ai' || window.location.pathname.startsWith('/edge-ai/'))
+    ? '/edge-ai'
+    : undefined;
+
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -30,4 +36,6 @@ export const router = createBrowserRouter([
       { path: 'projects', element: <ProjectManagementPage /> },
     ],
   },
-]);
+], {
+  basename: routerBasename,
+});

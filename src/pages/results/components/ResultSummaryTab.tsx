@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Icon } from '@blueprintjs/core';
 import { useResults, useResultSummary } from '@/hooks/useResults';
 import { ResultKpiCards } from './ResultKpiCards';
-import { FilterBar } from './FilterBar';
+import { FilterBar, type FilterOption } from './FilterBar';
 import { SuccessRateChart } from './SuccessRateChart';
 import { AccuracyDropChart } from './AccuracyDropChart';
 import { ResultLogTable, type ModelGroup } from './ResultLogTable';
@@ -12,6 +12,42 @@ interface ResultSummaryTabProps {
   onViewAnalysis: (result: AttackResult) => void;
 }
 
+const splitAttackTechniques = (attack: string): string[] =>
+  attack
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+const getAttackGroup = (attack: string): FilterOption => {
+  const normalized = attack.toLowerCase();
+
+  if (normalized.includes('patch-')) {
+    return { value: 'patch', label: '적대적 패치' };
+  }
+
+  if (/(fgsm|bim|pgd)/i.test(attack)) {
+    return { value: 'gradient', label: 'FGSM / BIM / PGD' };
+  }
+
+  if (attack.includes('딥보이스') || normalized.includes('voice')) {
+    return { value: 'voice', label: '음성 우회' };
+  }
+
+  return { value: attack, label: attack };
+};
+
+const getTechniqueLabel = (technique: string): string =>
+  technique.startsWith('Patch-') ? technique.replace('Patch-', '') : technique;
+
+const uniqueOptions = (options: FilterOption[]): FilterOption[] => {
+  const seen = new Set<string>();
+  return options.filter((option) => {
+    if (seen.has(option.value)) return false;
+    seen.add(option.value);
+    return true;
+  });
+};
+
 export function ResultSummaryTab({ onViewAnalysis }: ResultSummaryTabProps) {
   const [modelFilter, setModelFilter] = useState('all');
   const [attackFilter, setAttackFilter] = useState('all');
@@ -19,19 +55,74 @@ export function ResultSummaryTab({ onViewAnalysis }: ResultSummaryTabProps) {
   const [search, setSearch] = useState('');
 
   const { data: summary, isLoading: summaryLoading } = useResultSummary();
-  const { data: resultsData, isLoading: resultsLoading } = useResults({
-    model: modelFilter !== 'all' ? modelFilter : undefined,
-    attack: attackFilter !== 'all' ? attackFilter : undefined,
-    search: search || undefined,
-  });
+  const { data: resultsData, isLoading: resultsLoading } = useResults({ size: 500 });
+
+  const allResults = useMemo(() => resultsData?.data ?? [], [resultsData]);
+
+  const modelOptions = useMemo<FilterOption[]>(
+    () => [
+      { value: 'all', label: '모든 모델' },
+      ...uniqueOptions(allResults.map((result) => ({
+        value: result.model,
+        label: result.model,
+      }))),
+    ],
+    [allResults]
+  );
+
+  const attackOptions = useMemo<FilterOption[]>(
+    () => [
+      { value: 'all', label: '모든 공격 기법' },
+      ...uniqueOptions(allResults.map((result) => getAttackGroup(result.attack))),
+    ],
+    [allResults]
+  );
+
+  const techniqueOptions = useMemo<FilterOption[]>(() => {
+    if (attackFilter === 'all') return [];
+
+    const techniques = allResults
+      .filter((result) => getAttackGroup(result.attack).value === attackFilter)
+      .flatMap((result) => splitAttackTechniques(result.attack))
+      .map((technique) => ({
+        value: technique,
+        label: getTechniqueLabel(technique),
+      }));
+
+    return uniqueOptions(techniques);
+  }, [allResults, attackFilter]);
 
   const groupedResults: ModelGroup[] = useMemo(() => {
-    let results = resultsData?.data ?? [];
+    let results = allResults;
 
-    // 세부 기법 필터링 (프론트엔드에서 추가 필터)
+    if (modelFilter !== 'all') {
+      results = results.filter((result) => result.model === modelFilter);
+    }
+
+    if (attackFilter !== 'all') {
+      results = results.filter(
+        (result) => getAttackGroup(result.attack).value === attackFilter
+      );
+    }
+
     if (techniqueFilter.length > 0) {
       results = results.filter((r) =>
-        techniqueFilter.some((t) => r.attack.includes(t))
+        techniqueFilter.some((technique) =>
+          splitAttackTechniques(r.attack).includes(technique)
+        )
+      );
+    }
+
+    const normalizedSearch = search.trim().toLowerCase();
+    if (normalizedSearch) {
+      results = results.filter((result) =>
+        [
+          result.id,
+          result.model,
+          result.modelType,
+          result.attack,
+          result.dataset,
+        ].some((value) => value?.toLowerCase().includes(normalizedSearch))
       );
     }
 
@@ -43,7 +134,7 @@ export function ResultSummaryTab({ onViewAnalysis }: ResultSummaryTabProps) {
       groups[r.model].results.push(r);
     }
     return Object.values(groups);
-  }, [resultsData, techniqueFilter]);
+  }, [allResults, modelFilter, attackFilter, techniqueFilter, search]);
 
   return (
     <div className="results-summary-content">
@@ -52,6 +143,9 @@ export function ResultSummaryTab({ onViewAnalysis }: ResultSummaryTabProps) {
         attackFilter={attackFilter}
         techniqueFilter={techniqueFilter}
         search={search}
+        modelOptions={modelOptions}
+        attackOptions={attackOptions}
+        techniqueOptions={techniqueOptions}
         onModelChange={setModelFilter}
         onAttackChange={setAttackFilter}
         onTechniqueChange={setTechniqueFilter}

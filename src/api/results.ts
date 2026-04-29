@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { AttackResult, ResultSummary } from '@/types';
+import type { AttackResult, ResultSummary, PaginatedResponse } from '@/types';
 
 export const resultsApi = {
   getResults: async (params?: {
@@ -8,7 +8,7 @@ export const resultsApi = {
     search?: string;
     page?: number;
     size?: number;
-  }): Promise<{ data: AttackResult[]; total: number }> => {
+  }): Promise<PaginatedResponse<AttackResult>> => {
     const response = await apiClient.get('/results', { params });
     return response.data;
   },

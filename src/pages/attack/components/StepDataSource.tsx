@@ -1,6 +1,18 @@
+import { useEffect } from 'react';
 import { useAttackWizardStore } from '@/stores/attackWizardStore';
-import { useDatasets } from '@/hooks/useDatasets';
-import { Card, Elevation, Icon, Tag, Divider, RadioGroup, Radio } from '@blueprintjs/core';
+import { useVisualizationDatasets } from '@/hooks/useDatasets';
+import {
+  Card,
+  Elevation,
+  Icon,
+  Tag,
+  Divider,
+  RadioGroup,
+  Radio,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core';
+import type { Dataset } from '@/types';
 
 export function StepDataSource() {
   const {
@@ -10,15 +22,48 @@ export function StepDataSource() {
     setDatasetSubOption,
     selectedDatasetId,
     setDatasetId,
+    selectedAttackIds,
   } = useAttackWizardStore();
 
-  const { data: datasets } = useDatasets({ sort: 'latest' });
-  const latestDataset = datasets?.[0] || null;
+  const isLoadMode = dataSource === 'load';
+  const kind = datasetSubOption ?? null;
+
+  const latestQuery = useVisualizationDatasets({
+    attackTypeIds: selectedAttackIds,
+    kind: 'latest',
+    enabled: isLoadMode && kind === 'latest',
+  });
+  const fixedQuery = useVisualizationDatasets({
+    attackTypeIds: selectedAttackIds,
+    kind: 'fixed',
+    enabled: isLoadMode && kind === 'fixed',
+  });
+
+  // 라디오 변경 시 datasetId 리셋
+  useEffect(() => {
+    if (!isLoadMode) {
+      if (selectedDatasetId !== null) setDatasetId(null);
+    }
+  }, [isLoadMode, selectedDatasetId, setDatasetId]);
+
+  // 선택된 datasetId가 현재 표시되는 목록에 없으면 리셋
+  useEffect(() => {
+    if (!isLoadMode || !kind) return;
+    const list = (kind === 'latest' ? latestQuery.data : fixedQuery.data) ?? [];
+    if (selectedDatasetId && !list.some((ds) => ds.id === selectedDatasetId)) {
+      setDatasetId(null);
+    }
+  }, [
+    isLoadMode,
+    kind,
+    latestQuery.data,
+    fixedQuery.data,
+    selectedDatasetId,
+    setDatasetId,
+  ]);
 
   return (
     <div className="animate-fade-in">
-      <h5 className="bp6-heading" style={{ marginBottom: 20 }}>공격 데이터 설정</h5>
-
       {/* 데이터 소스 선택 — interactive Card 패턴 */}
       <div className="datasource-options">
         <Card
@@ -83,7 +128,7 @@ export function StepDataSource() {
       </div>
 
       {/* 저장된 데이터 서브옵션 */}
-      {dataSource === 'load' && (
+      {isLoadMode && (
         <div className="datasource-sub animate-fade-in">
           <Divider style={{ margin: '20px 0' }} />
 
@@ -91,63 +136,109 @@ export function StepDataSource() {
             onChange={(e) => {
               const val = (e.target as HTMLInputElement).value as 'latest' | 'fixed';
               setDatasetSubOption(val);
-              if (val === 'latest' && latestDataset) {
-                setDatasetId(latestDataset.id);
-              } else {
-                setDatasetId(null);
-              }
+              setDatasetId(null);
             }}
             selectedValue={datasetSubOption || ''}
           >
             <Radio value="latest" label="가장 최근 데이터셋" />
-            {latestDataset && datasetSubOption === 'latest' && (
-              <Card compact className="dataset-info-card">
-                <div className="dataset-info-content">
-                  <Icon icon="document" size={16} />
-                  <div>
-                    <div className="dataset-info-name">{latestDataset.name}</div>
-                    <div className="dataset-info-meta">
-                      <Tag minimal round>{latestDataset.createdAt}</Tag>
-                      <Tag minimal round>{latestDataset.size}</Tag>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+            {kind === 'latest' && (
+              <DatasetList
+                isLoading={latestQuery.isLoading}
+                isError={latestQuery.isError}
+                data={latestQuery.data ?? []}
+                selectedDatasetId={selectedDatasetId}
+                onSelect={setDatasetId}
+              />
             )}
 
             <Radio value="fixed" label="고정 데이터셋" style={{ marginTop: 12 }} />
-            {datasetSubOption === 'fixed' && datasets && (
-              <div className="dataset-list">
-                {datasets.map((ds) => (
-                  <Card
-                    key={ds.id}
-                    interactive
-                    selected={selectedDatasetId === ds.id}
-                    compact
-                    className="dataset-list-item"
-                    onClick={() => setDatasetId(ds.id)}
-                  >
-                    <div className="dataset-list-content">
-                      <div className="dataset-list-left">
-                        <Icon
-                          icon={selectedDatasetId === ds.id ? 'tick-circle' : 'circle'}
-                          size={16}
-                          intent={selectedDatasetId === ds.id ? 'primary' : 'none'}
-                        />
-                        <span className="dataset-list-name">{ds.name}</span>
-                      </div>
-                      <div className="dataset-list-right">
-                        <Tag minimal round>{ds.type}</Tag>
-                        <span className="dataset-list-size">{ds.size}</span>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+            {kind === 'fixed' && (
+              <DatasetList
+                isLoading={fixedQuery.isLoading}
+                isError={fixedQuery.isError}
+                data={fixedQuery.data ?? []}
+                selectedDatasetId={selectedDatasetId}
+                onSelect={setDatasetId}
+              />
             )}
           </RadioGroup>
         </div>
       )}
+    </div>
+  );
+}
+
+interface DatasetListProps {
+  isLoading: boolean;
+  isError: boolean;
+  data: Dataset[];
+  selectedDatasetId: string | null;
+  onSelect: (id: string) => void;
+}
+
+function DatasetList({
+  isLoading,
+  isError,
+  data,
+  selectedDatasetId,
+  onSelect,
+}: DatasetListProps) {
+  if (isLoading) {
+    return (
+      <div className="dataset-empty-state">
+        <Spinner size={SpinnerSize.SMALL} />
+        <span>데이터셋을 불러오는 중...</span>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="dataset-empty-state">
+        <Icon icon="warning-sign" size={16} />
+        <span>데이터셋을 불러오지 못했습니다.</span>
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="dataset-empty-state">
+        <Icon icon="database" size={16} />
+        <span>해당 공격 종류에 맞는 데이터셋이 없습니다.</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dataset-list">
+      {data.map((ds) => (
+        <Card
+          key={ds.id}
+          interactive
+          selected={selectedDatasetId === ds.id}
+          compact
+          className="dataset-list-item"
+          onClick={() => onSelect(ds.id)}
+        >
+          <div className="dataset-list-content">
+            <div className="dataset-list-left">
+              <Icon
+                icon={selectedDatasetId === ds.id ? 'tick-circle' : 'circle'}
+                size={16}
+                intent={selectedDatasetId === ds.id ? 'primary' : 'none'}
+              />
+              <span className="dataset-list-name">{ds.name}</span>
+            </div>
+            <div className="dataset-list-right">
+              <Tag minimal round>
+                {ds.type}
+              </Tag>
+              <span className="dataset-list-size">{ds.size}</span>
+            </div>
+          </div>
+        </Card>
+      ))}
     </div>
   );
 }

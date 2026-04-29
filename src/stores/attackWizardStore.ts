@@ -1,8 +1,11 @@
 import { create } from 'zustand';
-import type { ModelType } from '@/types';
+import type { Model, ModelType } from '@/types';
+import { isAttackTypeSupported, isModelTypeSupported } from '@/lib/constants';
 
 interface AttackWizardState {
   currentStep: 1 | 2 | 3;
+  selectedModelId: string | null;
+  selectedModelName: string | null;
   selectedModelType: ModelType | null;
   selectedAttackIds: string[];
   dataSource: 'generate' | 'load';
@@ -13,7 +16,7 @@ interface AttackWizardState {
   setStep: (step: 1 | 2 | 3) => void;
   nextStep: () => void;
   prevStep: () => void;
-  setModelType: (type: ModelType) => void;
+  setModel: (model: Model) => void;
   toggleAttack: (id: string) => void;
   toggleCategory: (childIds: string[]) => void;
   setDataSource: (source: 'generate' | 'load') => void;
@@ -25,6 +28,8 @@ interface AttackWizardState {
 
 const initialState = {
   currentStep: 1 as const,
+  selectedModelId: null,
+  selectedModelName: null,
   selectedModelType: null,
   selectedAttackIds: [] as string[],
   dataSource: 'generate' as const,
@@ -45,30 +50,42 @@ export const useAttackWizardStore = create<AttackWizardState>()((set, get) => ({
       currentStep: Math.max(state.currentStep - 1, 1) as 1 | 2 | 3,
     })),
 
-  setModelType: (type) => set({ selectedModelType: type }),
+  setModel: (model) => {
+    if (!isModelTypeSupported(model.modelType)) return;
+    set({
+      selectedModelId: model.id,
+      selectedModelName: model.name,
+      selectedModelType: model.modelType,
+    });
+  },
 
-  toggleAttack: (id) =>
+  toggleAttack: (id) => {
+    if (!isAttackTypeSupported(id)) return;
     set((state) => ({
       selectedAttackIds: state.selectedAttackIds.includes(id)
         ? state.selectedAttackIds.filter((a) => a !== id)
         : [...state.selectedAttackIds, id],
-    })),
+    }));
+  },
 
   toggleCategory: (childIds) =>
     set((state) => {
-      const allSelected = childIds.every((id) =>
+      const supportedChildIds = childIds.filter(isAttackTypeSupported);
+      if (supportedChildIds.length === 0) return {};
+
+      const allSelected = supportedChildIds.every((id) =>
         state.selectedAttackIds.includes(id)
       );
       if (allSelected) {
         return {
           selectedAttackIds: state.selectedAttackIds.filter(
-            (id) => !childIds.includes(id)
+            (id) => !supportedChildIds.includes(id)
           ),
         };
       }
       return {
         selectedAttackIds: [
-          ...new Set([...state.selectedAttackIds, ...childIds]),
+          ...new Set([...state.selectedAttackIds, ...supportedChildIds]),
         ],
       };
     }),
@@ -84,7 +101,7 @@ export const useAttackWizardStore = create<AttackWizardState>()((set, get) => ({
     const state = get();
     switch (step) {
       case 1:
-        return state.selectedModelType !== null;
+        return state.selectedModelId !== null && state.selectedModelType !== null;
       case 2:
         return state.selectedAttackIds.length > 0;
       case 3:
