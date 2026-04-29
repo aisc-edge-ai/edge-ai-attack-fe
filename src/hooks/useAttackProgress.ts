@@ -176,8 +176,11 @@ export function useAttackProgress(
     };
   }, [attackId, cleanup, connectWebSocket]);
 
+  // attackId 전환 직후에는 직전 공격에서 보존된 local progress(특히 terminal
+  // status)가 watcher에 잠시 노출돼 잘못된 토스트를 유발할 수 있으므로,
+  // return 시점에서 attackId 매칭이 맞을 때만 progress를 노출한다.
   return {
-    progress: attackId ? progress : null,
+    progress: attackId && progress?.attackId === attackId ? progress : null,
     isConnected: attackId ? isConnected : false,
     error,
   };
