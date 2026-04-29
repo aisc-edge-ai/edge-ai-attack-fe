@@ -64,6 +64,12 @@ export function AttackExecutionPage() {
         modelType: selectedModelType,
         attackTypeIds: selectedAttackIds,
       });
+      const toaster = await AppToaster;
+      toaster.show({
+        message: '모의 공격이 시작되었습니다.',
+        intent: Intent.SUCCESS,
+        icon: 'play',
+      });
     } catch {
       const toaster = await AppToaster;
       toaster.show({ message: '공격 실행에 실패했습니다.', intent: Intent.DANGER, icon: 'error' });
