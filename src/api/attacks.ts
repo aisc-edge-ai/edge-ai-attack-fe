@@ -3,7 +3,7 @@ import type { AttackCategory, AttackExecuteRequest } from '@/types';
 
 export const attacksApi = {
   getAttackTypes: async (modelType: string): Promise<AttackCategory[]> => {
-    const response = await apiClient.get<AttackCategory[]>('/attacks', {
+    const response = await apiClient.get<AttackCategory[]>('/attack', {
       params: { modelType },
     });
     return response.data;
@@ -15,5 +15,9 @@ export const attacksApi = {
       request
     );
     return response.data;
+  },
+
+  cancel: async (attackId: string): Promise<void> => {
+    await apiClient.post(`/attack/${encodeURIComponent(attackId)}/cancel`);
   },
 };

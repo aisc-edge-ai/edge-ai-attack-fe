@@ -16,7 +16,9 @@
 @import "./styles/login.css";
 @import "./styles/results.css";
 @import "./styles/attack.css";
+@import "./styles/attack-progress.css";
 @import "./styles/components.css";
+@import "./styles/dashboard.css";
 
 /* ===========================
    Custom Variables (전역)

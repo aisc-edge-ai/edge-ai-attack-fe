@@ -1,12 +1,27 @@
 import apiClient from './client';
 import type { Dataset } from '@/types';
 
+export type VisualizationDatasetKind = 'latest' | 'fixed';
+
 export const datasetsApi = {
   getDatasets: async (params?: {
     type?: string;
     sort?: string;
   }): Promise<Dataset[]> => {
     const response = await apiClient.get<Dataset[]>('/datasets', { params });
+    return response.data;
+  },
+
+  getVisualizationDatasets: async (params: {
+    attackTypeIds: string[];
+    kind: VisualizationDatasetKind;
+  }): Promise<Dataset[]> => {
+    const response = await apiClient.get<Dataset[]>('/datasets/visualization', {
+      params: {
+        attackTypeIds: params.attackTypeIds.join(','),
+        kind: params.kind,
+      },
+    });
     return response.data;
   },
 

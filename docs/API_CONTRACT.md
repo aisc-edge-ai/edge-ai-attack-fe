@@ -7,8 +7,8 @@
 
 | 환경 | REST API | WebSocket |
 |------|----------|-----------|
-| Dev | `http://localhost:8080/api` | `ws://localhost:8080/ws` |
-| Prod | `/api` (nginx 프록시) | `/ws` (nginx 프록시) |
+| Dev | `http://localhost:8080` | `ws://localhost:8080/ws` |
+| Prod | `/` (nginx 프록시) | `/ws` (nginx 프록시) |
 
 ## 인증 헤더
 
@@ -76,7 +76,7 @@ Authorization: Bearer {accessToken}
 [
   {
     "id": "MDL-001",
-    "name": "YOLOv8",
+    "name": "YOLOv5",
     "type": "객체 탐지",
     "modelType": "cctv",
     "framework": "PyTorch",
@@ -94,7 +94,7 @@ Authorization: Bearer {accessToken}
 
 ## 3. Attacks
 
-### GET /attacks?modelType={string}
+### GET /attack?modelType={string}
 모델 타입별 사용 가능한 공격 유형 조회.
 
 **Query Params:**
@@ -107,9 +107,18 @@ Authorization: Bearer {accessToken}
     "id": "cat-adversarial",
     "name": "적대적 공격",
     "children": [
-      { "id": "atk-fgsm", "name": "FGSM", "categoryId": "cat-adversarial" },
-      { "id": "atk-bim", "name": "BIM", "categoryId": "cat-adversarial" },
-      { "id": "atk-pgd", "name": "PGD", "categoryId": "cat-adversarial" }
+      { "id": "atk-fgsm", "name": "FGSM", "categoryId": "cat-adversarial", "enabled": false },
+      { "id": "atk-bim", "name": "BIM", "categoryId": "cat-adversarial", "enabled": false },
+      { "id": "atk-pgd", "name": "PGD", "categoryId": "cat-adversarial", "enabled": false }
+    ]
+  },
+  {
+    "id": "cat-patch",
+    "name": "적대적 패치 공격",
+    "children": [
+      { "id": "atk-hiding", "name": "Hiding", "categoryId": "cat-patch" },
+      { "id": "atk-creating", "name": "Creating", "categoryId": "cat-patch" },
+      { "id": "atk-altering", "name": "Altering", "categoryId": "cat-patch" }
     ]
   }
 ]
@@ -122,7 +131,7 @@ Authorization: Bearer {accessToken}
 ```json
 {
   "modelType": "cctv",
-  "attackTypeIds": ["atk-fgsm", "atk-hiding"],
+  "attackTypeIds": ["atk-hiding"],
   "dataSource": "generate",
   "datasetId": "DS-001"  // dataSource가 "load"일 때만
 }
@@ -219,7 +228,7 @@ Authorization: Bearer {accessToken}
 포함해도 됨. 상세 탐지 지표(AP/AR/confThreshold 등)는 `GET /results/{id}` 에 포함.
 
 **Query Params (optional):**
-- `model`: 모델명 필터 (e.g., `"YOLOv8"`)
+- `model`: 모델명 필터 (e.g., `"YOLOv5"`)
 - `attack`: 공격 종류 필터 (e.g., `"Patch-Hiding"`)
 - `search`: 로그 ID 또는 모델명 검색
 - `page`: 페이지 번호 (0-based)
@@ -232,7 +241,7 @@ Authorization: Bearer {accessToken}
     {
       "id": "LOG-20260212-001",
       "date": "2026-02-12 10:30",
-      "model": "YOLOv8",
+      "model": "YOLOv5",
       "modelType": "객체 탐지",
       "attack": "Patch-Hiding",
       "successRate": "76.47%",
@@ -260,7 +269,7 @@ Authorization: Bearer {accessToken}
 {
   "id": "LOG-20260212-001",
   "date": "2026-02-12 10:30",
-  "model": "YOLOv8",
+  "model": "YOLOv5",
   "modelType": "객체 탐지",
   "attack": "Patch-Hiding",
   "successRate": "76.47%",
@@ -290,7 +299,7 @@ Authorization: Bearer {accessToken}
 | `attackSuccessRate` | string | optional | 공격 성공률 (퍼센트 문자열, e.g., `"100%"`). 기존 `successRate` 보다 구체적인 지표. | 백엔드 계산 |
 | `confThreshold` | number | optional | 객체 탐지 confidence threshold (0.0 ~ 1.0). Metadata 테이블에 노출 | 평가 설정 |
 | `averageCIoU` | number | optional | 평균 Complete IoU (0.0 ~ 1.0). Metadata 테이블에 노출 | 백엔드 계산 |
-| `dataset` | string | optional | 평가에 사용한 테스트 데이터셋 이름. Vulnerability Assessment prose 에 삽입 (e.g., `"해당 YOLOv8은 demo_hiding_test에 대한 Patch 공격에 대해..."`) | 실행 시 입력 |
+| `dataset` | string | optional | 평가에 사용한 테스트 데이터셋 이름. Vulnerability Assessment prose 에 삽입 (e.g., `"해당 YOLOv5은 demo_hiding_test에 대한 Patch 공격에 대해..."`) | 실행 시 입력 |
 
 **프론트엔드 사용처**:
 - `src/pages/results/components/ResultAnalysisTab.tsx`

@@ -31,7 +31,14 @@ const ANIMATED_EDGE = {
 };
 
 export function WorkflowCanvas() {
-  const { currentStep, selectedModelType, selectedAttackIds, dataSource, selectedDatasetId } =
+  const {
+    currentStep,
+    selectedModelName,
+    selectedModelType,
+    selectedAttackIds,
+    dataSource,
+    selectedDatasetId,
+  } =
     useAttackWizardStore();
   const { data: datasets } = useDatasets({ sort: 'latest' });
   const { data: attackCategories } = useAttackTypes(selectedModelType);
@@ -57,7 +64,7 @@ export function WorkflowCanvas() {
       n.push({
         id: 'model',
         type: 'modelNode',
-        data: { modelType: selectedModelType || '' },
+        data: { modelName: selectedModelName || '', modelType: selectedModelType || '' },
         position: { x, y },
       });
       e.push({ id: 'e-start-model', source: 'start', target: 'model', ...ANIMATED_EDGE });
@@ -97,7 +104,16 @@ export function WorkflowCanvas() {
       edges: e,
       nodeKey: n.map(nd => nd.id).join('-'),
     };
-  }, [currentStep, selectedModelType, selectedAttackIds, dataSource, selectedDatasetId, datasets, attackCategories]);
+  }, [
+    currentStep,
+    selectedModelName,
+    selectedModelType,
+    selectedAttackIds,
+    dataSource,
+    selectedDatasetId,
+    datasets,
+    attackCategories,
+  ]);
 
   return (
     <div className="workflow-canvas">

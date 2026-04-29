@@ -10,6 +10,7 @@ export interface AttackType {
   id: string;
   name: string;
   categoryId: string;
+  enabled?: boolean;
 }
 
 export interface AttackExecuteRequest {
@@ -21,7 +22,7 @@ export interface AttackExecuteRequest {
 
 export interface AttackProgress {
   attackId: string;
-  status: 'preparing' | 'running' | 'saving' | 'completed' | 'failed';
+  status: 'preparing' | 'running' | 'saving' | 'completed' | 'failed' | 'cancelled';
   progress: number;
   total: number;
   currentStep: string;

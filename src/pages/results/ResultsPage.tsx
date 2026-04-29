@@ -3,12 +3,21 @@ import { useParams } from 'react-router-dom';
 import { Tabs, Tab, Tag } from '@blueprintjs/core';
 import { ResultSummaryTab } from './components/ResultSummaryTab';
 import { ResultAnalysisTab } from './components/ResultAnalysisTab';
+import { useResultById } from '@/hooks/useResults';
 import type { AttackResult } from '@/types';
 
 export function ResultsPage() {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState(id ? 'analysis' : 'summary');
   const [selectedResult, setSelectedResult] = useState<AttackResult | null>(null);
+  const detailId = activeTab === 'analysis' ? id ?? selectedResult?.id ?? null : null;
+  const {
+    data: detailResult,
+    isLoading: isDetailLoading,
+    isError: isDetailError,
+    refetch: refetchDetail,
+  } = useResultById(detailId);
+  const analysisResult = detailResult ?? selectedResult;
 
   const handleViewAnalysis = (result: AttackResult) => {
     setSelectedResult(result);
@@ -28,7 +37,7 @@ export function ResultsPage() {
           <Tab id="analysis" title={
             <span>
               상세 결과 분석
-              {selectedResult && <Tag intent="primary" minimal round style={{ marginLeft: 8 }}>선택됨</Tag>}
+              {analysisResult && <Tag intent="primary" minimal round style={{ marginLeft: 8 }}>선택됨</Tag>}
             </span>
           } />
         </Tabs>
@@ -36,7 +45,15 @@ export function ResultsPage() {
 
       <div className="results-tab-content">
         {activeTab === 'summary' && <ResultSummaryTab onViewAnalysis={handleViewAnalysis} />}
-        {activeTab === 'analysis' && <ResultAnalysisTab selectedResult={selectedResult} onGoBack={() => setActiveTab('summary')} />}
+        {activeTab === 'analysis' && (
+          <ResultAnalysisTab
+            selectedResult={analysisResult}
+            isLoading={isDetailLoading}
+            isError={isDetailError}
+            onRetry={() => void refetchDetail()}
+            onGoBack={() => setActiveTab('summary')}
+          />
+        )}
       </div>
     </div>
   );

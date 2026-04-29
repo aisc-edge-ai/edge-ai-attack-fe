@@ -1,6 +1,7 @@
 import { Card, Elevation } from '@blueprintjs/core';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+// TODO: API 연동 시 GET /results/summary 또는 집계 API에서 동적 데이터로 교체
 const data = [
   { name: '패치 (Hiding)', rate: 82 },
   { name: 'PGD', rate: 65 },

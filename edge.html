@@ -249,8 +249,7 @@
                     <IconMonitor size={18} className="mr-2 text-slate-500"/> 엣지 디바이스 상태
                   </h3>
                   <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-                    <DeviceStatusItem name="CCTV Node 01" status="online" type="객체 탐지 (YOLOv8)" />
-                    <DeviceStatusItem name="CCTV Node 02" status="warning" type="객체 탐지 (DETR)" />
+                    <DeviceStatusItem name="CCTV Node 01" status="online" type="객체 탐지 (YOLOv5)" />
                     <DeviceStatusItem name="Voice Assistant Hub" status="offline" type="음성 인식 (Whisper)" />
                     <DeviceStatusItem name="Auto-Drive Vision" status="online" type="이미지 분류 (ResNet)" />
                   </div>
@@ -278,9 +277,8 @@
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       <RecentLogItem status="running" model="Whisper (AI 비서)" attack="음성 인식 인증 우회" successRate="분석 중..." date="현재 진행중" risk="none" />
-                      <RecentLogItem status="completed" model="YOLOv8 (CCTV)" attack="적대적 패치 (Hiding)" successRate="76.4%" date="2026-02-12 10:30" risk="high" />
+                      <RecentLogItem status="completed" model="YOLOv5 (CCTV)" attack="적대적 패치 (Hiding)" successRate="76.4%" date="2026-02-12 10:30" risk="high" />
                       <RecentLogItem status="completed" model="ResNet50 (자율주행)" attack="FGSM 적대적 공격" successRate="12.1%" date="2026-02-11 15:45" risk="low" />
-                      <RecentLogItem status="failed" model="DETR (CCTV)" attack="PGD 적대적 공격" successRate="-" date="2026-02-11 09:20" risk="none" />
                     </tbody>
                   </table>
                 </div>
@@ -560,8 +558,7 @@
 
           // 가상의 결과 데이터
           const mockLogs = [
-            { id: 'LOG-20260212-001', date: '2026-02-12 10:30', model: 'YOLOv8', type: '객체 탐지', attack: 'Patch-Hiding', successRate: '76.47%', beforeAcc: '95.2%', afterAcc: '22.4%', risk: 'high' },
-            { id: 'LOG-20260212-002', date: '2026-02-12 09:15', model: 'DETR', type: '객체 탐지', attack: 'FGSM', successRate: '12.50%', beforeAcc: '92.1%', afterAcc: '80.5%', risk: 'low' },
+            { id: 'LOG-20260212-001', date: '2026-02-12 10:30', model: 'YOLOv5', type: '객체 탐지', attack: 'Patch-Hiding', successRate: '76.47%', beforeAcc: '95.2%', afterAcc: '22.4%', risk: 'high' },
             { id: 'LOG-20260211-003', date: '2026-02-11 16:20', model: 'ResNet50', type: '자율주행 (분류)', attack: 'PGD', successRate: '98.56%', beforeAcc: '99.8%', afterAcc: '1.2%', risk: 'critical' },
             { id: 'LOG-20260211-004', date: '2026-02-11 14:10', model: 'Whisper', type: '음성 인식', attack: '딥보이스 우회', successRate: '56.59%', beforeAcc: '96.5%', afterAcc: '42.0%', risk: 'medium' },
           ];
@@ -656,8 +653,7 @@
                         <h4 className="font-bold text-slate-800 mb-6">모델별 평균 정확도 하락 (성능 저하)</h4>
                         <div className="flex h-40 items-end justify-around pb-2 border-b border-slate-200">
                           {/* 간단한 Bar Chart CSS 구성 */}
-                          <BarChartItem model="YOLOv8" before={95} after={22} />
-                          <BarChartItem model="DETR" before={92} after={80} />
+                          <BarChartItem model="YOLOv5" before={95} after={22} />
                           <BarChartItem model="ResNet" before={99} after={12} />
                           <BarChartItem model="Whisper" before={96} after={42} />
                         </div>
@@ -898,8 +894,7 @@
 
           // 가상 데이터: 등록된 모델 목록
           const models = [
-            { id: 'MDL-001', name: 'YOLOv8', type: '객체 탐지', framework: 'PyTorch', node: 'CCTV Node 01', status: 'active', date: '2026-02-01' },
-            { id: 'MDL-002', name: 'DETR', type: '객체 탐지', framework: 'ONNX', node: 'CCTV Node 02', status: 'testing', date: '2026-02-05' },
+            { id: 'MDL-001', name: 'YOLOv5', type: '객체 탐지', framework: 'PyTorch', node: 'CCTV Node 01', status: 'active', date: '2026-02-01' },
             { id: 'MDL-003', name: 'ResNet50', type: '이미지 분류', framework: 'TensorFlow', node: 'Auto-Drive Vision', status: 'active', date: '2026-01-20' },
             { id: 'MDL-004', name: 'Whisper', type: '음성 인식', framework: 'PyTorch', node: 'Voice Hub', status: 'offline', date: '2026-02-10' },
           ];

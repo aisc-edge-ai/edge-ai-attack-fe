@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { HTMLTable, Button, Icon, Tag, Intent } from '@blueprintjs/core';
 import { RiskBadge } from '@/components/shared/RiskBadge';
 import type { AttackResult } from '@/types';
@@ -16,25 +16,16 @@ interface ResultLogTableProps {
 }
 
 export function ResultLogTable({ groups, isLoading, onViewAnalysis }: ResultLogTableProps) {
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() =>
-    new Set(groups.map((g) => g.model))
-  );
-
-  useEffect(() => {
-    setExpandedGroups((prev) => {
-      const next = new Set(prev);
-      for (const g of groups) {
-        if (!prev.has(g.model)) next.add(g.model);
-      }
-      return next;
-    });
-  }, [groups]);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set());
 
   const toggleGroup = (model: string) => {
-    setExpandedGroups((prev) => {
+    setCollapsedGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(model)) next.delete(model);
-      else next.add(model);
+      if (next.has(model)) {
+        next.delete(model);
+      } else {
+        next.add(model);
+      }
       return next;
     });
   };
@@ -74,7 +65,7 @@ export function ResultLogTable({ groups, isLoading, onViewAnalysis }: ResultLogT
         </thead>
         <tbody>
           {groups.map((group) => {
-            const isExpanded = expandedGroups.has(group.model);
+            const isExpanded = !collapsedGroups.has(group.model);
             const vulnerableCount = group.results.filter((r) => r.risk === 'vulnerable').length;
 
             return (

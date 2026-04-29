@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { saveAs } from 'file-saver';
 import { Button, Card, Elevation, Icon, Intent, Tag } from '@blueprintjs/core';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { ErrorState } from '@/components/shared/ErrorState';
 import { RiskBadge } from '@/components/shared/RiskBadge';
 import { RISK_LABELS, GRADE_CRITERIA, RECOMMENDATIONS } from '@/lib/risk-constants';
 import { AppToaster } from '@/lib/toaster';
@@ -8,10 +10,19 @@ import type { AttackResult } from '@/types';
 
 interface ResultAnalysisTabProps {
   selectedResult: AttackResult | null;
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
   onGoBack: () => void;
 }
 
-export function ResultAnalysisTab({ selectedResult, onGoBack }: ResultAnalysisTabProps) {
+export function ResultAnalysisTab({
+  selectedResult,
+  isLoading = false,
+  isError = false,
+  onRetry,
+  onGoBack,
+}: ResultAnalysisTabProps) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const handleDownloadPdf = async () => {
@@ -24,16 +35,7 @@ export function ResultAnalysisTab({ selectedResult, onGoBack }: ResultAnalysisTa
         import('./ReportPdfDocument'),
       ]);
       const blob = await pdf(<ReportPdfDocument result={selectedResult} />).toBlob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${selectedResult.id}_report.pdf`;
-      // Firefox/일부 Chromium 에서 document 에 연결되지 않은 엘리먼트의 click 을
-      // 무시하는 경우가 있어, 명시적으로 body 에 추가 후 제거한다.
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      saveAs(new Blob([blob], { type: 'application/pdf' }), `${selectedResult.id}_report.pdf`);
     } catch (err: unknown) {
       const toaster = await AppToaster;
       toaster.show({
@@ -46,6 +48,26 @@ export function ResultAnalysisTab({ selectedResult, onGoBack }: ResultAnalysisTa
       setIsGeneratingPdf(false);
     }
   };
+
+  if (isLoading && !selectedResult) {
+    return (
+      <div className="results-summary-content animate-fade-in">
+        <div className="bp6-skeleton" style={{ height: 110 }} />
+        <div className="bp6-skeleton" style={{ height: 360 }} />
+        <div className="bp6-skeleton" style={{ height: 240 }} />
+      </div>
+    );
+  }
+
+  if (isError && !selectedResult) {
+    return (
+      <ErrorState
+        title="상세 결과를 불러올 수 없습니다"
+        description="선택한 공격 로그의 상세 데이터를 다시 요청해주세요."
+        onRetry={onRetry}
+      />
+    );
+  }
 
   if (!selectedResult) {
     return (
@@ -61,6 +83,9 @@ export function ResultAnalysisTab({ selectedResult, onGoBack }: ResultAnalysisTa
   const beforeAcc = parseFloat(selectedResult.beforeAccuracy);
   const afterAcc = parseFloat(selectedResult.afterAccuracy);
   const drop = (beforeAcc - afterAcc).toFixed(1);
+
+  const visualEvidence = selectedResult.detail?.visualEvidence;
+  const sampleImage = visualEvidence?.sampleImages?.[0];
 
   const RISK_INTENTS: Record<string, Intent> = {
     vulnerable: Intent.DANGER,
@@ -111,10 +136,18 @@ export function ResultAnalysisTab({ selectedResult, onGoBack }: ResultAnalysisTa
               <div className="evidence-panel">
                 <div className="evidence-header">원본 데이터 (정상 탐지)</div>
                 <div className="evidence-body">
-                  <Icon icon="camera" size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
-                  <span style={{ fontSize: 13 }}>정상적인 사람 이미지</span>
-                  <div style={{ position: 'absolute', top: 40, left: 64, width: 96, height: 128, border: '2px solid #0d8050', background: 'rgba(13,128,80,0.1)' }} />
-                  <span style={{ position: 'absolute', top: 24, left: 64, background: 'var(--bp-success)', color: '#fff', fontSize: 10, padding: '1px 4px', fontWeight: 700 }}>Person: 98%</span>
+                  {sampleImage?.clean ? (
+                    <img
+                      src={sampleImage.clean}
+                      alt="Clean sample"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <>
+                      <Icon icon="media" size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
+                      <span style={{ fontSize: 13 }}>원본 이미지 없음</span>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="evidence-panel danger">
@@ -123,12 +156,18 @@ export function ResultAnalysisTab({ selectedResult, onGoBack }: ResultAnalysisTa
                   적대적 데이터 (탐지 회피)
                 </div>
                 <div className="evidence-body">
-                  <Icon icon="camera" size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
-                  <span style={{ fontSize: 13 }}>적대적 패치 부착 이미지</span>
-                  <div style={{ position: 'absolute', top: 80, left: 80, width: 32, height: 32, background: 'linear-gradient(135deg, #7157d9, #cd4246, #d9822b)', borderRadius: 4 }} />
-                  <div style={{ position: 'absolute', bottom: 8, right: 8, fontSize: 11, fontWeight: 700, color: 'var(--bp-danger)', background: 'rgba(205,66,70,0.1)', padding: '2px 8px', borderRadius: 3, border: '1px solid rgba(205,66,70,0.2)' }}>
-                    객체 탐지 실패 (0건)
-                  </div>
+                  {sampleImage?.patched ? (
+                    <img
+                      src={sampleImage.patched}
+                      alt="Patched sample"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <>
+                      <Icon icon="media" size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
+                      <span style={{ fontSize: 13 }}>공격 이미지 없음</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -199,6 +238,56 @@ export function ResultAnalysisTab({ selectedResult, onGoBack }: ResultAnalysisTa
           </div>
         </div>
       </div>
+
+      {/* 🧩 Visual Evidence — patch & confusion matrix */}
+      {(visualEvidence?.patchImage || visualEvidence?.confusionMatrix) && (
+        <div className="results-section-card">
+          <div className="results-section-header">
+            <Icon icon="media" size={12} />
+            <span>Visual Evidence</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, padding: 16 }}>
+            {visualEvidence.patchImage && (
+              <div>
+                <div className="bp6-text-muted" style={{ fontSize: 12, marginBottom: 6 }}>
+                  학습된 적대적 패치
+                </div>
+                <img
+                  src={visualEvidence.patchImage}
+                  alt="Adversarial patch"
+                  style={{
+                    width: '100%',
+                    maxHeight: 320,
+                    objectFit: 'contain',
+                    background: '#f5f8fa',
+                    borderRadius: 4,
+                    border: '1px solid rgba(16,22,26,0.1)',
+                  }}
+                />
+              </div>
+            )}
+            {visualEvidence.confusionMatrix && (
+              <div>
+                <div className="bp6-text-muted" style={{ fontSize: 12, marginBottom: 6 }}>
+                  Confusion Matrix (패치 적용 후)
+                </div>
+                <img
+                  src={visualEvidence.confusionMatrix}
+                  alt="Confusion matrix"
+                  style={{
+                    width: '100%',
+                    maxHeight: 320,
+                    objectFit: 'contain',
+                    background: '#f5f8fa',
+                    borderRadius: 4,
+                    border: '1px solid rgba(16,22,26,0.1)',
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 🔍 Vulnerability Assessment */}
       <div className="results-section-card">

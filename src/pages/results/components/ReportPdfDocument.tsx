@@ -400,7 +400,7 @@ export function ReportPdfDocument({ result }: ReportPdfDocumentProps) {
               <Text
                 style={[
                   styles.metricStripValue,
-                  m.danger && { color: COLORS.danger },
+                  m.danger ? { color: COLORS.danger } : {},
                 ]}
               >
                 {m.value}
@@ -421,7 +421,7 @@ export function ReportPdfDocument({ result }: ReportPdfDocumentProps) {
                 key={k}
                 style={[
                   styles.metaRow,
-                  idx === metadataRows.length - 1 && styles.metaRowLast,
+                  idx === metadataRows.length - 1 ? styles.metaRowLast : {},
                 ]}
               >
                 <Text style={styles.metaKey}>{k}</Text>
@@ -447,10 +447,10 @@ export function ReportPdfDocument({ result }: ReportPdfDocumentProps) {
                     <Text
                       style={[
                         styles.gradeLabel,
-                        isCurrent && {
+                        isCurrent ? {
                           color: COLORS.textPrimary,
                           fontWeight: 700,
-                        },
+                        } : {},
                       ]}
                     >
                       {g.label}
@@ -458,7 +458,7 @@ export function ReportPdfDocument({ result }: ReportPdfDocumentProps) {
                     <Text
                       style={[
                         styles.gradeDesc,
-                        isCurrent && { color: COLORS.textPrimary },
+                        isCurrent ? { color: COLORS.textPrimary } : {},
                       ]}
                     >
                       {g.description}
@@ -477,7 +477,7 @@ export function ReportPdfDocument({ result }: ReportPdfDocumentProps) {
         {RECOMMENDATIONS.map((r, idx) => (
           <View
             key={r.num}
-            style={[styles.recItem, idx === 0 && styles.recItemFirst]}
+            style={[styles.recItem, idx === 0 ? styles.recItemFirst : {}]}
           >
             <Text style={styles.recNumber}>{r.num}</Text>
             <View style={styles.recContent}>

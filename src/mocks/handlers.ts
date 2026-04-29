@@ -6,6 +6,11 @@ import {
   MOCK_RESULTS,
   MOCK_MODELS,
   MOCK_DASHBOARD_SUMMARY,
+  MOCK_DASHBOARD_TREND,
+  MOCK_DEVICE_STATUSES,
+  MOCK_MODEL_VULNERABILITIES,
+  MOCK_RISK_DISTRIBUTION,
+  MOCK_RECENT_LOGS,
   MODEL_ATTACK_MAP,
 } from '@/lib/mock-data';
 
@@ -61,10 +66,39 @@ export const handlers = [
     return HttpResponse.json(MOCK_DASHBOARD_SUMMARY);
   }),
 
+  http.get(`${API_BASE_URL}/dashboard/trend`, async ({ request }) => {
+    await delay(300);
+    const url = new URL(request.url);
+    const days = Number(url.searchParams.get('days') ?? 30);
+    return HttpResponse.json(MOCK_DASHBOARD_TREND.slice(-days));
+  }),
+
+  http.get(`${API_BASE_URL}/dashboard/devices`, async () => {
+    await delay(200);
+    return HttpResponse.json(MOCK_DEVICE_STATUSES);
+  }),
+
+  http.get(`${API_BASE_URL}/dashboard/model-vulnerabilities`, async () => {
+    await delay(300);
+    return HttpResponse.json(MOCK_MODEL_VULNERABILITIES);
+  }),
+
+  http.get(`${API_BASE_URL}/dashboard/risk-distribution`, async () => {
+    await delay(200);
+    return HttpResponse.json(MOCK_RISK_DISTRIBUTION);
+  }),
+
+  http.get(`${API_BASE_URL}/dashboard/recent-attacks`, async ({ request }) => {
+    await delay(300);
+    const url = new URL(request.url);
+    const limit = Number(url.searchParams.get('limit') ?? 5);
+    return HttpResponse.json(MOCK_RECENT_LOGS.slice(0, limit));
+  }),
+
   // ==========================================
   // 공격 종류 조회
   // ==========================================
-  http.get(`${API_BASE_URL}/attacks`, async ({ request }) => {
+  http.get(`${API_BASE_URL}/attack`, async ({ request }) => {
     await delay(300);
     const url = new URL(request.url);
     const modelType = url.searchParams.get('modelType') || '';
@@ -94,7 +128,7 @@ export const handlers = [
     const url = new URL(request.url);
     const sort = url.searchParams.get('sort');
 
-    let datasets = [...MOCK_DATASETS];
+    const datasets = [...MOCK_DATASETS];
     if (sort === 'latest') {
       datasets.sort(
         (a, b) =>
@@ -144,6 +178,30 @@ export const handlers = [
   }),
 
   http.delete(`${API_BASE_URL}/results/:id`, async () => {
+    await delay(300);
+    return HttpResponse.json({ success: true });
+  }),
+
+  // ==========================================
+  // 데이터셋 업로드
+  // ==========================================
+  http.post(`${API_BASE_URL}/datasets`, async () => {
+    await delay(500);
+    return HttpResponse.json({
+      id: 'DS-' + Date.now(),
+      name: '업로드된 데이터셋',
+      type: '사용자 업로드',
+      datasetType: 'image_patch',
+      size: '3.1 MB',
+      usage: 0,
+      createdAt: new Date().toISOString().split('T')[0],
+    });
+  }),
+
+  // ==========================================
+  // 데이터셋 삭제
+  // ==========================================
+  http.delete(`${API_BASE_URL}/datasets/:id`, async () => {
     await delay(300);
     return HttpResponse.json({ success: true });
   }),

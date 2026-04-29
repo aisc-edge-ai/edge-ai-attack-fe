@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Button, Menu, MenuItem, Navbar, NavbarGroup, NavbarHeading, Alignment, Icon } from '@blueprintjs/core';
 import { useAuth } from '@/hooks/useAuth';
+import { useAttackJobStore, isJobRunning } from '@/stores/attackJobStore';
 import { ROUTE_TITLES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { AttackProgressWatcher } from '@/components/shared/AttackProgressWatcher';
+import { AttackProgressDock } from '@/components/shared/AttackProgressDock';
 
 const navItems = [
   { to: '/dashboard', icon: 'desktop' as const, label: '대시보드' },
@@ -19,6 +22,8 @@ export function DashboardLayout() {
   const basePath = '/' + location.pathname.split('/')[1];
   const pageTitle = ROUTE_TITLES[basePath] || '';
   const [collapsed, setCollapsed] = useState(false);
+  const jobStatus = useAttackJobStore((s) => s.activeJob?.status);
+  const attackInProgress = isJobRunning(jobStatus);
 
   const activeNav = navItems.find(item => basePath === item.to) ||
     (location.pathname.startsWith('/results') ? navItems.find(item => item.to === '/results') : null);
@@ -44,13 +49,29 @@ export function DashboardLayout() {
               const isActive =
                 basePath === item.to ||
                 (item.to === '/results' && location.pathname.startsWith('/results'));
+              const showRunningDot = item.to === '/attack' && attackInProgress;
 
               return (
                 <MenuItem
                   key={item.to}
                   icon={item.icon}
-                  text={collapsed ? undefined : item.label}
-                  className={isActive ? 'active-menu-item' : ''}
+                  text={
+                    collapsed ? undefined : (
+                      <span className="sidebar-menu-text">
+                        {item.label}
+                        {showRunningDot && (
+                          <span
+                            className="sidebar-running-dot"
+                            aria-label="공격 진행 중"
+                          />
+                        )}
+                      </span>
+                    )
+                  }
+                  className={cn(
+                    isActive && 'active-menu-item',
+                    showRunningDot && 'has-running-indicator'
+                  )}
                   onClick={(e) => {
                     e.preventDefault();
                     navigate(item.to);
@@ -103,6 +124,10 @@ export function DashboardLayout() {
           <Outlet />
         </div>
       </main>
+
+      {/* 글로벌 공격 진행 추적 (모든 페이지) */}
+      <AttackProgressWatcher />
+      <AttackProgressDock />
     </div>
   );
 }
