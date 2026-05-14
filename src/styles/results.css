@@ -191,7 +191,7 @@
 }
 
 .prominent-value.text-value {
-  font-family: Consolas, Monaco, monospace;
+  font-family: var(--font-sans);
   font-size: 24px;
   line-height: 1.16;
   font-weight: 800;
@@ -215,6 +215,10 @@
 
 .prominent-value.danger {
   color: var(--bp-danger);
+}
+
+.prominent-value.warning {
+  color: var(--bp-warning, #d9822b);
 }
 
 .prominent-sub {
@@ -256,21 +260,225 @@
 }
 
 /* ===========================
-   Properties (Charts)
+   Properties (Charts) — Divider-based panel grid
    =========================== */
-.results-charts-section {
-  padding: 16px;
+.properties-chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   background: var(--bp-bg-card);
 }
 
-.charts-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+.properties-chart-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.properties-chart-panel:not(:last-child) {
+  border-right: 1px solid var(--bp-border);
+}
+
+.properties-chart-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px 6px;
+}
+
+.properties-chart-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--bp-text-secondary);
+}
+
+.properties-chart-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+
+.properties-chart-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--bp-text-muted);
+}
+
+.properties-chart-stat-value {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--bp-text-primary);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.properties-chart-stat-divider {
+  color: var(--bp-text-muted);
+  opacity: 0.5;
+  font-size: 11px;
+  margin: 0 2px;
+}
+
+.properties-chart-body {
+  padding: 4px 12px 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.properties-chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  font-size: 12px;
 }
 
 @media (max-width: 1024px) {
-  .charts-grid { grid-template-columns: 1fr; }
+  .properties-chart-grid { grid-template-columns: 1fr; }
+  .properties-chart-panel:not(:last-child) {
+    border-right: none;
+    border-bottom: 1px solid var(--bp-border);
+  }
+}
+
+/* ===========================
+   Chart Tooltip Card (shared with dashboard / future charts)
+   =========================== */
+.chart-tooltip-card {
+  background: var(--bp-bg-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(16, 22, 26, 0.08);
+  padding: 8px 12px;
+  font-size: 12px;
+  min-width: 140px;
+}
+
+.chart-tooltip-label {
+  color: var(--bp-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.chart-tooltip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 0;
+}
+
+.chart-tooltip-row-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--bp-text-secondary);
+  font-size: 12px;
+}
+
+.chart-tooltip-row-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.chart-tooltip-value {
+  font-family: Consolas, Monaco, monospace;
+  font-weight: 700;
+  color: var(--bp-text-primary);
+  font-feature-settings: 'tnum';
+}
+
+.chart-tooltip-row-divider {
+  border-top: 1px solid var(--bp-border);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+/* ===========================
+   Dumbbell legend (AccuracyDropChart)
+   =========================== */
+.dumbbell-legend {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  padding: 4px 0 0;
+  font-size: 11px;
+  color: var(--bp-text-secondary);
+}
+
+.dumbbell-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dumbbell-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.dumbbell-legend-before {
+  background: #ffffff;
+  border: 2px solid #a7b6c2;
+}
+
+.dumbbell-legend-after {
+  background: #cd4246;
+}
+
+/* ===========================
+   AudioPlayer (shared) — voice 결과의 시각적 증거
+   =========================== */
+.audio-player-card {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.audio-player-empty {
+  background: rgba(255, 179, 102, 0.06);
+  border: 1px dashed rgba(217, 130, 43, 0.45);
+  box-shadow: none;
+}
+.audio-player-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--bp-text-primary);
+}
+.audio-player-label { flex: 1; }
+.audio-player-placeholder {
+  padding: 14px 8px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--bp-text-muted);
+  font-style: italic;
+  border-top: 1px dashed var(--bp-border);
+  margin-top: 4px;
+}
+.evidence-audio-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* ===========================
@@ -417,7 +625,7 @@
 .analysis-meta-value.primary { color: var(--bp-primary); }
 .analysis-meta-value.danger { color: var(--bp-danger); }
 
-/* Analysis prominent metrics — 6 columns */
+/* Analysis prominent metrics — 6 columns (object detection default) */
 .analysis-prominent-metrics {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -431,6 +639,34 @@
 
 .analysis-prominent-metrics .prominent-item {
   padding: 16px 20px;
+}
+
+/* MTC variant — 3 large equally-weighted accuracy cards */
+.analysis-prominent-metrics--mtc {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.analysis-prominent-metrics--mtc .prominent-item {
+  padding: 20px 24px;
+}
+
+/* MTC 라벨은 한국어 + 긴 텍스트 — 기본 영문 헤더 스타일(10px, uppercase, letter-spacing)
+   을 override 하여 가독성 회복. */
+.analysis-prominent-metrics--mtc .prominent-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--bp-text-primary);
+  white-space: normal;
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 1100px) {
+  .analysis-prominent-metrics--mtc {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Legacy KPI grid (used elsewhere) */

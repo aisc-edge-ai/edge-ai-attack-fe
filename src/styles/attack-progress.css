@@ -119,15 +119,23 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .attack-progress-dock-toolbar-actions {
   display: flex;
   gap: 4px;
   align-items: center;
+  flex-shrink: 0;
+}
+
+.attack-progress-dock-toolbar-actions .bp6-button-text {
+  white-space: nowrap;
 }
 
 .attack-progress-dock-hint {
+  flex: 1 1 0;
+  min-width: 0;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;

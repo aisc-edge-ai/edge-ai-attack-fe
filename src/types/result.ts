@@ -19,6 +19,16 @@ export interface AttackResult {
   confThreshold?: number;        // e.g., 0.4
   averageCIoU?: number;          // e.g., 0.308
   dataset?: string;              // 테스트에 사용된 데이터셋명, e.g., "demo_hiding_test"
+  /**
+   * Model Type Inference (MTC) 전용 — 3가지 방법의 best validation accuracy (0~100 정수).
+   * Baseline = softmax probability only, Blackbox = +feature1, Graybox = +feature1+feature2.
+   * 출처: `results_raw/comparison/summary_comparison.csv`
+   */
+  inferenceAccuracy?: {
+    baseline: number;
+    blackbox: number;
+    graybox: number;
+  };
   rawResultsUrl?: string;
   resultsJsonUrl?: string;
   visualizationUrl?: string;
@@ -36,6 +46,17 @@ export interface AttackResult {
         clean: string;
         patched: string;
       }>;
+      /** 음성 결과의 시각적 증거 — 원본/타겟/공격 음성 샘플. src 미지정 시 placeholder */
+      audioSamples?: Array<{
+        label: string;
+        src?: string;
+      }>;
+      /** MTC 전용 — 4모델 × 3방법 confusion matrix 합본 이미지 URL */
+      confusionMatrixCombined?: string;
+      /** MTC 전용 — 방법별 ROC curve 비교 이미지 URL */
+      rocCurveComparison?: string;
+      /** MTC 전용 — 방법별 validation accuracy 학습곡선 이미지 URL */
+      valAccuracyComparison?: string;
     };
   };
 }

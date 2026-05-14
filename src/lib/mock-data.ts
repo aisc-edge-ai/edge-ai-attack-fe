@@ -11,75 +11,129 @@ import type {
   RiskDistribution,
 } from '@/types';
 
-// ==========================================
-// 모델 목록
-// ==========================================
-export const MOCK_MODELS: Model[] = [
-  { id: 'MDL-001', name: 'YOLOv5', type: '객체 탐지', modelType: 'cctv', framework: 'PyTorch', node: 'CCTV Node 01', status: 'active', registeredAt: '2026-02-01' },
-  { id: 'MDL-003', name: 'ResNet50', type: '이미지 분류', modelType: 'autonomous', framework: 'TensorFlow', node: 'Auto-Drive Vision', status: 'active', registeredAt: '2026-01-20' },
-  { id: 'MDL-004', name: 'Whisper', type: '음성 인식', modelType: 'voice', framework: 'PyTorch', node: 'Voice Hub', status: 'offline', registeredAt: '2026-02-10' },
-];
+// ============================================================================
+// 딥보이스 mock — mock-providers.ts 의 registry 에서 사용.
+// 백엔드 미연결 영역만 mock 으로 표시. 미래 신규 모델 추가는 mock-providers.ts
+// 에 entry 만 추가하면 됨.
+// ============================================================================
 
-// ==========================================
-// 공격 종류 (모델 타입별 필터링)
-// ==========================================
-export const MOCK_ATTACK_CATEGORIES: AttackCategory[] = [
+export const MOCK_VOICE_MODELS: Model[] = [
   {
-    id: 'cat-adversarial',
-    name: '적대적 공격',
-    children: [
-      { id: 'atk-fgsm', name: 'FGSM', categoryId: 'cat-adversarial' },
-      { id: 'atk-bim', name: 'BIM', categoryId: 'cat-adversarial' },
-      { id: 'atk-pgd', name: 'PGD', categoryId: 'cat-adversarial' },
-    ],
+    id: 'MDL-007',
+    name: 'Resemblyzer',
+    type: '음성 인식 (화자 인증)',
+    modelType: 'voice',
+    framework: 'PyTorch',
+    node: 'Voice Hub',
+    status: 'active',
+    registeredAt: '2026-04-17',
   },
   {
-    id: 'cat-patch',
-    name: '적대적 패치 공격',
-    children: [
-      { id: 'atk-hiding', name: 'Hiding', categoryId: 'cat-patch' },
-      { id: 'atk-creating', name: 'Creating', categoryId: 'cat-patch' },
-      { id: 'atk-altering', name: 'Altering', categoryId: 'cat-patch' },
-    ],
-  },
-  {
-    id: 'cat-voice',
-    name: '음성 인식 인증 우회 공격 (딥보이스)',
-    children: [
-      { id: 'atk-deepvoice', name: '딥보이스 우회', categoryId: 'cat-voice' },
-    ],
+    id: 'MDL-008',
+    name: 'ECAPA-TDNN',
+    type: '음성 인식 (화자 인증)',
+    modelType: 'voice',
+    framework: 'PyTorch',
+    node: 'Voice Hub',
+    status: 'active',
+    registeredAt: '2026-04-17',
   },
 ];
 
-// 모델 타입별 사용 가능한 공격 카테고리 매핑
-export const MODEL_ATTACK_MAP: Record<string, string[]> = {
-  cctv: ['cat-adversarial', 'cat-patch'],
-  voice: ['cat-adversarial', 'cat-voice'],
-  autonomous: ['cat-adversarial', 'cat-patch'],
+export const MOCK_VOICE_CATEGORY: AttackCategory = {
+  id: 'cat-voice',
+  name: '음성 인식 인증 우회 공격 (딥보이스)',
+  children: [
+    { id: 'atk-rtvc', name: 'RTVC (Real-Time Voice Cloning)', categoryId: 'cat-voice' },
+    { id: 'atk-tortoise', name: 'Tortoise-TTS', categoryId: 'cat-voice' },
+    { id: 'atk-yourtts', name: 'YourTTS', categoryId: 'cat-voice' },
+    { id: 'atk-avc', name: 'AVC (Adversarial Voice Cloning)', categoryId: 'cat-voice' },
+  ],
 };
 
-// ==========================================
-// 공격 데이터셋
-// ==========================================
-export const MOCK_DATASETS: Dataset[] = [
-  { id: 'DS-001', name: 'Person-Hiding Patch v2', type: '적대적 패치 (이미지)', datasetType: 'image_patch', size: '1.2 MB', usage: 45, createdAt: '2026-02-11' },
-  { id: 'DS-002', name: 'Stop-Sign Altering Patch', type: '적대적 패치 (이미지)', datasetType: 'image_patch', size: '840 KB', usage: 12, createdAt: '2026-02-08' },
-  { id: 'DS-003', name: 'DeepVoice Bypass Audio', type: '적대적 노이즈 (오디오)', datasetType: 'audio_noise', size: '15.4 MB', usage: 8, createdAt: '2026-01-28' },
-  { id: 'DS-004', name: 'Standard FGSM Noise', type: '노이즈 텐서', datasetType: 'noise_tensor', size: '4.5 MB', usage: 120, createdAt: '2026-01-15' },
+export const MOCK_VOICE_DATASETS: Dataset[] = [
+  { id: 'DS-V01', name: 'VCTK', type: '음성 코퍼스 (다화자)', datasetType: 'audio_noise', size: '11.2 GB', usage: 24, createdAt: '2026-04-17', category: 'voice' },
+  { id: 'DS-V02', name: 'MCV (Mozilla Common Voice)', type: '음성 코퍼스 (크라우드)', datasetType: 'audio_noise', size: '76.4 GB', usage: 18, createdAt: '2026-04-17', category: 'voice' },
+  { id: 'DS-V03', name: 'LibriSpeech_Selected', type: '음성 코퍼스 (오디오북)', datasetType: 'audio_noise', size: '6.8 GB', usage: 32, createdAt: '2026-04-17', category: 'voice' },
+  { id: 'DS-V04', name: 'CSNED', type: '한국어 음성 데이터셋', datasetType: 'audio_noise', size: '4.5 GB', usage: 11, createdAt: '2026-04-17', category: 'voice' },
+  { id: 'DS-V05', name: 'CSUKIED', type: '한영 다국어 음성', datasetType: 'audio_noise', size: '5.1 GB', usage: 7, createdAt: '2026-04-17', category: 'voice' },
+  { id: 'DS-V06', name: 'FST', type: '합성 음성 평가셋', datasetType: 'audio_noise', size: '2.3 GB', usage: 15, createdAt: '2026-04-17', category: 'voice' },
 ];
 
-// ==========================================
-// 공격 결과 로그
-// ==========================================
-export const MOCK_RESULTS: AttackResult[] = [
-  { id: 'LOG-20260212-001', date: '2026-02-12 10:30', model: 'YOLOv5', modelType: '객체 탐지', attack: 'Patch-Hiding', successRate: '76.47%', beforeAccuracy: '95.2%', afterAccuracy: '22.4%', risk: 'vulnerable', beforeAP: '0.996', afterAP: '0.524', beforeAR: '0.997', afterAR: '0.561', attackSuccessRate: '100%', confThreshold: 0.4, averageCIoU: 0.308, dataset: 'demo_hiding_test' },
-  { id: 'LOG-20260211-003', date: '2026-02-11 16:20', model: 'ResNet50', modelType: '자율주행 (분류)', attack: 'PGD', successRate: '98.56%', beforeAccuracy: '99.8%', afterAccuracy: '1.2%', risk: 'vulnerable', beforeAP: '0.998', afterAP: '0.012', beforeAR: '0.999', afterAR: '0.015', attackSuccessRate: '98.56%', confThreshold: 0.4, averageCIoU: 0.005, dataset: 'demo_pgd_test' },
-  { id: 'LOG-20260211-004', date: '2026-02-11 14:10', model: 'Whisper', modelType: '음성 인식', attack: '딥보이스 우회', successRate: '56.59%', beforeAccuracy: '96.5%', afterAccuracy: '42.0%', risk: 'warning', beforeAP: '0.965', afterAP: '0.420', beforeAR: '0.970', afterAR: '0.435', attackSuccessRate: '56.59%', confThreshold: 0.5, averageCIoU: 0.41, dataset: 'demo_deepvoice_test' },
+export const MOCK_VOICE_RESULTS_LIST: AttackResult[] = [
+  {
+    id: 'LOG-20260417-010',
+    date: '2026-04-17 11:05',
+    model: 'Resemblyzer',
+    modelType: '음성 인식 (화자 인증)',
+    attack: 'RTVC',
+    successRate: '64.20%',
+    beforeAccuracy: '94.1%',
+    afterAccuracy: '29.9%',
+    risk: 'vulnerable',
+    beforeAP: '0.941',
+    afterAP: '0.299',
+    beforeAR: '0.945',
+    afterAR: '0.310',
+    attackSuccessRate: '64.20%',
+    confThreshold: 0.5,
+    dataset: 'VCTK + LibriSpeech_Selected',
+    detail: {
+      metrics: {
+        clean: { EER: 0.041, accuracy: 0.941 },
+        patched: { EER: 0.331, accuracy: 0.299 },
+        noise_baseline: { EER: 0.052, accuracy: 0.928 },
+      },
+      visualEvidence: {
+        sampleImages: [],
+        audioSamples: [
+          { label: '원본 음성 (정상 화자)' },
+          { label: '타겟 화자 샘플' },
+          { label: '공격 음성 (RTVC 합성)' },
+        ],
+      },
+    },
+  },
+  {
+    id: 'LOG-20260417-011',
+    date: '2026-04-17 13:42',
+    model: 'ECAPA-TDNN',
+    modelType: '음성 인식 (화자 인증)',
+    attack: 'YourTTS',
+    successRate: '48.85%',
+    beforeAccuracy: '97.6%',
+    afterAccuracy: '49.9%',
+    risk: 'warning',
+    beforeAP: '0.976',
+    afterAP: '0.499',
+    beforeAR: '0.978',
+    afterAR: '0.512',
+    attackSuccessRate: '48.85%',
+    confThreshold: 0.5,
+    dataset: 'MCV + CSNED',
+    detail: {
+      metrics: {
+        clean: { EER: 0.024, accuracy: 0.976 },
+        patched: { EER: 0.249, accuracy: 0.499 },
+        noise_baseline: { EER: 0.030, accuracy: 0.965 },
+      },
+      visualEvidence: {
+        sampleImages: [],
+        audioSamples: [
+          { label: '원본 음성 (정상 화자)' },
+          { label: '타겟 화자 샘플' },
+          { label: '공격 음성 (YourTTS 합성)' },
+        ],
+      },
+    },
+  },
 ];
 
-// ==========================================
-// 대시보드 데이터
-// ==========================================
+// ============================================================================
+// 대시보드 mock fallback — src/api/dashboard.ts 의 withMockFallback 이 사용.
+// 백엔드 endpoint 미구현 시에만 폴백. 구현 완료되면 dashboard.ts 의 fallback 제거.
+// ============================================================================
+
 export const MOCK_DASHBOARD_SUMMARY: DashboardSummary = {
   totalModels: 12,
   totalAttacks: 3450,

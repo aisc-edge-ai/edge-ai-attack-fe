@@ -5,8 +5,13 @@ import { cn } from '@/lib/utils';
 import { isAttackTypeSupported } from '@/lib/constants';
 
 export function StepAttackSelect() {
-  const { selectedModelType, selectedAttackIds, toggleAttack, toggleCategory } =
-    useAttackWizardStore();
+  const {
+    selectedModelType,
+    selectedAttackIds,
+    toggleAttack,
+    toggleCategory,
+    setHoveredAttackId,
+  } = useAttackWizardStore();
 
   const { data: categories, isLoading } = useAttackTypes(selectedModelType);
 
@@ -82,6 +87,8 @@ export function StepAttackSelect() {
                       if (!isSupported) return;
                       toggleAttack(attack.id);
                     }}
+                    onMouseEnter={() => isSupported && setHoveredAttackId(attack.id)}
+                    onMouseLeave={() => setHoveredAttackId(null)}
                     aria-disabled={!isSupported}
                   >
                     <div className="attack-item-content">

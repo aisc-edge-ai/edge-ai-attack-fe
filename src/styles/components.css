@@ -76,6 +76,16 @@
   gap: 16px;
 }
 
+.evidence-grid-single {
+  grid-template-columns: 1fr;
+}
+
+.evidence-grid-single .evidence-body {
+  height: auto;
+  min-height: 280px;
+  padding: 12px;
+}
+
 .evidence-panel {
   border: 1px solid var(--bp-border);
   border-radius: 3px;

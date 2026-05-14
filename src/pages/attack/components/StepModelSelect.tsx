@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useAttackWizardStore } from '@/stores/attackWizardStore';
 import { useModels } from '@/hooks/useModels';
 import { Icon, Tag, type IconName } from '@blueprintjs/core';
@@ -8,11 +9,32 @@ const MODEL_ICONS: Record<string, string> = {
   cctv: 'camera',
   voice: 'headset',
   autonomous: 'drive-time',
+  classification: 'predictive-analysis',
 };
 
+/**
+ * Stage 2 — 선택된 modelType 안의 세부 모델 카드.
+ * `selectedModelType` 으로 `useModels()` 응답을 필터링하여 표시.
+ * 모델 수가 1개여도 단일 카드 그대로 표시 (사용자 명시 클릭).
+ */
 export function StepModelSelect() {
-  const { selectedModelId, setModel } = useAttackWizardStore();
-  const { data: models, isLoading, isError } = useModels();
+  const { selectedModelType, selectedModelId, setModel, setHoveredModelType } =
+    useAttackWizardStore();
+  const { data: allModels, isLoading, isError } = useModels();
+
+  const models = useMemo(
+    () =>
+      (allModels ?? []).filter((m) => m.modelType === selectedModelType),
+    [allModels, selectedModelType],
+  );
+
+  if (!selectedModelType) {
+    return (
+      <div className="animate-fade-in">
+        <p className="bp6-text-muted">먼저 모델 종류를 선택해주세요.</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -22,10 +44,18 @@ export function StepModelSelect() {
     );
   }
 
-  if (isError || !models) {
+  if (isError || !allModels) {
     return (
       <div className="animate-fade-in">
         <p className="bp6-text-muted">모델 목록을 불러오는데 실패했습니다.</p>
+      </div>
+    );
+  }
+
+  if (models.length === 0) {
+    return (
+      <div className="animate-fade-in">
+        <p className="bp6-text-muted">선택된 종류에 사용 가능한 모델이 없습니다.</p>
       </div>
     );
   }
@@ -45,6 +75,8 @@ export function StepModelSelect() {
                 if (!isSupported) return;
                 setModel(model);
               }}
+              onMouseEnter={() => isSupported && setHoveredModelType(model.modelType)}
+              onMouseLeave={() => setHoveredModelType(null)}
               style={!isSupported ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
               aria-disabled={!isSupported}
             >

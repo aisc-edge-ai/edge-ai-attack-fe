@@ -3,17 +3,19 @@ import { useAttackWizardStore } from '@/stores/attackWizardStore';
 import { useAttackJobStore, isJobRunning } from '@/stores/attackJobStore';
 import { useExecuteAttack } from '@/hooks/useAttacks';
 import { StepIndicator } from './components/StepIndicator';
+import { StepModelTypeSelect } from './components/StepModelTypeSelect';
 import { StepModelSelect } from './components/StepModelSelect';
 import { StepAttackSelect } from './components/StepAttackSelect';
 import { StepDataSource } from './components/StepDataSource';
-import { WorkflowCanvas } from './components/WorkflowCanvas';
+import { AttackGraphicCanvas } from './components/AttackGraphicCanvas';
 import { AttackProgressPanel } from './components/AttackProgressPanel';
 import { AppToaster } from '@/lib/toaster';
 
-const STEP_TITLES: Record<1 | 2 | 3, string> = {
-  1: '테스트할 AI 모델 선택',
-  2: '수행할 공격 종류를 선택해주세요',
-  3: '공격 데이터 설정',
+const STEP_TITLES: Record<1 | 2 | 3 | 4, string> = {
+  1: 'AI 모델 종류 선택',
+  2: '테스트할 세부 모델 선택',
+  3: '수행할 공격 종류를 선택해주세요',
+  4: '공격 데이터 설정',
 };
 
 export function AttackExecutionPage() {
@@ -27,7 +29,7 @@ export function AttackExecutionPage() {
     selectedModelType,
     selectedAttackIds,
     dataSource,
-    selectedDatasetId,
+    selectedDatasetIds,
   } = useAttackWizardStore();
 
   const activeJob = useAttackJobStore((s) => s.activeJob);
@@ -55,7 +57,7 @@ export function AttackExecutionPage() {
         modelType: selectedModelType,
         attackTypeIds: selectedAttackIds,
         dataSource,
-        datasetId: dataSource === 'load' ? selectedDatasetId ?? undefined : undefined,
+        datasetIds: dataSource === 'load' ? selectedDatasetIds : [],
       });
       startJob({
         attackId: result.attackId,
@@ -99,7 +101,7 @@ export function AttackExecutionPage() {
                       <div />
                     )}
 
-                    {currentStep < 3 ? (
+                    {currentStep < 4 ? (
                       <Button
                         text="다음"
                         rightIcon="chevron-right"
@@ -120,16 +122,17 @@ export function AttackExecutionPage() {
                   </div>
                 </div>
 
-                {currentStep === 1 && <StepModelSelect />}
-                {currentStep === 2 && <StepAttackSelect />}
-                {currentStep === 3 && <StepDataSource />}
+                {currentStep === 1 && <StepModelTypeSelect />}
+                {currentStep === 2 && <StepModelSelect />}
+                {currentStep === 3 && <StepAttackSelect />}
+                {currentStep === 4 && <StepDataSource />}
               </>
             )}
           </div>
         </div>
 
-        {/* 우측 패널: Workflow 캔버스 */}
-        <WorkflowCanvas />
+        {/* 우측 패널: Attack 그래픽 캔버스 (modelType + attackId 별 일러스트) */}
+        <AttackGraphicCanvas />
       </div>
     </div>
   );

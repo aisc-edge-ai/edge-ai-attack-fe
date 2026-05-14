@@ -3,29 +3,22 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './app/App';
 
-async function enableMocking() {
-  if (import.meta.env.DEV && import.meta.env.VITE_MOCK_API === 'true') {
-    const { worker } = await import('./mocks/browser');
-    return worker.start({
-      onUnhandledRequest: 'bypass',
-    });
-  }
-
-  // MSW 꺼진 상태에서 이전 세션의 service worker가 남아있으면 언등록.
-  if ('serviceWorker' in navigator) {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(
-      regs
-        .filter((r) => r.active?.scriptURL.includes('mockServiceWorker'))
-        .map((r) => r.unregister())
-    );
-  }
+// 이전 세션에서 MSW Service Worker 가 등록되어 있다면 언등록.
+// MSW 가 완전히 제거된 이후로는 단순 정리용. 6개월 후 안전하게 제거 가능.
+async function cleanupLegacyServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  const regs = await navigator.serviceWorker.getRegistrations();
+  await Promise.all(
+    regs
+      .filter((r) => r.active?.scriptURL.includes('mockServiceWorker'))
+      .map((r) => r.unregister()),
+  );
 }
 
-enableMocking().then(() => {
+cleanupLegacyServiceWorker().finally(() => {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />
-    </StrictMode>
+    </StrictMode>,
   );
 });

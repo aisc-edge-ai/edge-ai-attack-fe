@@ -4,8 +4,10 @@ import { Button, Card, Elevation, Icon, Intent, Tag } from '@blueprintjs/core';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { RiskBadge } from '@/components/shared/RiskBadge';
-import { RISK_LABELS, GRADE_CRITERIA, RECOMMENDATIONS } from '@/lib/risk-constants';
+import { EvidenceRenderer } from '@/components/evidence';
+import { RISK_LABELS, getGradeCriteria, getRecommendations } from '@/lib/risk-constants';
 import { AppToaster } from '@/lib/toaster';
+import { ProminentMetrics } from './ProminentMetrics';
 import type { AttackResult } from '@/types';
 
 interface ResultAnalysisTabProps {
@@ -32,7 +34,7 @@ export function ResultAnalysisTab({
       // 동적 import — @react-pdf/renderer 를 main bundle 에서 분리
       const [{ pdf }, { ReportPdfDocument }] = await Promise.all([
         import('@react-pdf/renderer'),
-        import('./ReportPdfDocument'),
+        import('./pdf/ReportPdfDocument'),
       ]);
       const blob = await pdf(<ReportPdfDocument result={selectedResult} />).toBlob();
       saveAs(new Blob([blob], { type: 'application/pdf' }), `${selectedResult.id}_report.pdf`);
@@ -80,12 +82,8 @@ export function ResultAnalysisTab({
     );
   }
 
-  const beforeAcc = parseFloat(selectedResult.beforeAccuracy);
-  const afterAcc = parseFloat(selectedResult.afterAccuracy);
-  const drop = (beforeAcc - afterAcc).toFixed(1);
-
   const visualEvidence = selectedResult.detail?.visualEvidence;
-  const sampleImage = visualEvidence?.sampleImages?.[0];
+  const isMtc = !!selectedResult.inferenceAccuracy;
 
   const RISK_INTENTS: Record<string, Intent> = {
     vulnerable: Intent.DANGER,
@@ -94,6 +92,13 @@ export function ResultAnalysisTab({
   };
   const riskLabel = RISK_LABELS[selectedResult.risk] || selectedResult.risk;
   const riskIntent: Intent = RISK_INTENTS[selectedResult.risk] ?? Intent.NONE;
+  const gradeCriteria = getGradeCriteria(selectedResult.modelType);
+  const recommendations = getRecommendations(selectedResult.modelType);
+
+  const successRateLabel = selectedResult.attackSuccessRate ?? selectedResult.successRate;
+  const assessmentPrompt = isMtc
+    ? `해당 모델군에 대해 수행한 Model Type Classification 에서 공격 성공률이 ${successRateLabel} 로 나타나 ${riskLabel} 수준의 취약성을 보였다. 이는 공격자가 대상 모델의 출력값 또는 출력 분포를 분석함으로써, 사전에 정의된 N개의 후보 모델 중 해당 모델이 어떤 유형에 속하는지 식별할 가능성이 있음을 의미한다. 이와 같이 유출된 모델 구조 정보는 이후 모델 복제, 표적형 적대적 공격, 우회 공격 등 추가적인 공격의 기초 정보로 악용될 수 있다.`
+    : null;
 
   return (
     <div className="results-summary-content animate-fade-in">
@@ -132,45 +137,7 @@ export function ResultAnalysisTab({
         {/* 상단: 좌 증거 이미지 | 우 메타데이터 */}
         <div className="analysis-prominent-top">
           <div className="analysis-evidence-side">
-            <div className="evidence-grid">
-              <div className="evidence-panel">
-                <div className="evidence-header">원본 데이터 (정상 탐지)</div>
-                <div className="evidence-body">
-                  {sampleImage?.clean ? (
-                    <img
-                      src={sampleImage.clean}
-                      alt="Clean sample"
-                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                    />
-                  ) : (
-                    <>
-                      <Icon icon="media" size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
-                      <span style={{ fontSize: 13 }}>원본 이미지 없음</span>
-                    </>
-                  )}
-                </div>
-              </div>
-              <div className="evidence-panel danger">
-                <div className="evidence-header">
-                  <Icon icon="warning-sign" size={12} style={{ marginRight: 4 }} />
-                  적대적 데이터 (탐지 회피)
-                </div>
-                <div className="evidence-body">
-                  {sampleImage?.patched ? (
-                    <img
-                      src={sampleImage.patched}
-                      alt="Patched sample"
-                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                    />
-                  ) : (
-                    <>
-                      <Icon icon="media" size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
-                      <span style={{ fontSize: 13 }}>공격 이미지 없음</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
+            <EvidenceRenderer evidence={visualEvidence} />
           </div>
 
           <div className="analysis-metadata-side">
@@ -189,58 +156,51 @@ export function ResultAnalysisTab({
                   <td className="analysis-meta-key">공격 기법</td>
                   <td className="analysis-meta-value">{selectedResult.attack}</td>
                 </tr>
-                <tr>
-                  <td className="analysis-meta-key">Conf Threshold</td>
-                  <td className="analysis-meta-value">{selectedResult.confThreshold ?? '-'}</td>
-                </tr>
-                <tr>
-                  <td className="analysis-meta-key">Average CIoU</td>
-                  <td className="analysis-meta-value">{selectedResult.averageCIoU ?? '-'}</td>
-                </tr>
-                <tr>
-                  <td className="analysis-meta-key">데이터 출처</td>
-                  <td className="analysis-meta-value">clean_map_stats / patch_map_stats</td>
-                </tr>
+                {isMtc ? (
+                  <>
+                    <tr>
+                      <td className="analysis-meta-key">데이터셋</td>
+                      <td className="analysis-meta-value">{selectedResult.dataset ?? '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">후보 모델</td>
+                      <td className="analysis-meta-value">CNN / ResNet / VGG / AlexNet</td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">데이터 출처</td>
+                      <td className="analysis-meta-value">results_raw/comparison/summary_comparison.csv</td>
+                    </tr>
+                  </>
+                ) : (
+                  <>
+                    <tr>
+                      <td className="analysis-meta-key">Conf Threshold</td>
+                      <td className="analysis-meta-value">{selectedResult.confThreshold ?? '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">Average CIoU</td>
+                      <td className="analysis-meta-value">{selectedResult.averageCIoU ?? '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">데이터 출처</td>
+                      <td className="analysis-meta-value">clean_map_stats / patch_map_stats</td>
+                    </tr>
+                  </>
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* 하단: Prominent 수치 6칸 */}
-        <div className="analysis-prominent-metrics">
-          <div className="prominent-item">
-            <div className="prominent-label">Before AP</div>
-            <div className="prominent-value">{selectedResult.beforeAP ?? '-'}</div>
-          </div>
-          <div className="prominent-item">
-            <div className="prominent-label">After AP</div>
-            <div className="prominent-value danger">{selectedResult.afterAP ?? '-'}</div>
-          </div>
-          <div className="prominent-item">
-            <div className="prominent-label">Before AR</div>
-            <div className="prominent-value">{selectedResult.beforeAR ?? '-'}</div>
-          </div>
-          <div className="prominent-item">
-            <div className="prominent-label">After AR</div>
-            <div className="prominent-value danger">{selectedResult.afterAR ?? '-'}</div>
-          </div>
-          <div className="prominent-item">
-            <div className="prominent-label">AP Drop</div>
-            <div className="prominent-value danger">
-              {selectedResult.beforeAP && selectedResult.afterAP
-                ? `-${(parseFloat(selectedResult.beforeAP) - parseFloat(selectedResult.afterAP)).toFixed(3)}`
-                : `-${drop}%p`}
-            </div>
-          </div>
-          <div className="prominent-item">
-            <div className="prominent-label">Attack Success</div>
-            <div className="prominent-value danger">{selectedResult.attackSuccessRate ?? selectedResult.successRate}</div>
-          </div>
-        </div>
+        {/* 하단: Prominent 수치 (modelType 별 분기 — ProminentMetrics 내부) */}
+        <ProminentMetrics result={selectedResult} />
       </div>
 
-      {/* 🧩 Visual Evidence — patch & confusion matrix */}
-      {(visualEvidence?.patchImage || visualEvidence?.confusionMatrix) && (
+      {/* 🧩 Visual Evidence — 공격 유형별 다른 이미지 세트 */}
+      {(visualEvidence?.patchImage ||
+        visualEvidence?.confusionMatrix ||
+        visualEvidence?.rocCurveComparison ||
+        visualEvidence?.valAccuracyComparison) && (
         <div className="results-section-card">
           <div className="results-section-header">
             <Icon icon="media" size={12} />
@@ -248,42 +208,28 @@ export function ResultAnalysisTab({
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, padding: 16 }}>
             {visualEvidence.patchImage && (
-              <div>
-                <div className="bp6-text-muted" style={{ fontSize: 12, marginBottom: 6 }}>
-                  학습된 적대적 패치
-                </div>
-                <img
-                  src={visualEvidence.patchImage}
-                  alt="Adversarial patch"
-                  style={{
-                    width: '100%',
-                    maxHeight: 320,
-                    objectFit: 'contain',
-                    background: '#f5f8fa',
-                    borderRadius: 4,
-                    border: '1px solid rgba(16,22,26,0.1)',
-                  }}
-                />
-              </div>
+              <VisualEvidenceImage label="학습된 적대적 패치" src={visualEvidence.patchImage} alt="Adversarial patch" />
             )}
             {visualEvidence.confusionMatrix && (
-              <div>
-                <div className="bp6-text-muted" style={{ fontSize: 12, marginBottom: 6 }}>
-                  Confusion Matrix (패치 적용 후)
-                </div>
-                <img
-                  src={visualEvidence.confusionMatrix}
-                  alt="Confusion matrix"
-                  style={{
-                    width: '100%',
-                    maxHeight: 320,
-                    objectFit: 'contain',
-                    background: '#f5f8fa',
-                    borderRadius: 4,
-                    border: '1px solid rgba(16,22,26,0.1)',
-                  }}
-                />
-              </div>
+              <VisualEvidenceImage
+                label="Confusion Matrix (패치 적용 후)"
+                src={visualEvidence.confusionMatrix}
+                alt="Confusion matrix"
+              />
+            )}
+            {visualEvidence.rocCurveComparison && (
+              <VisualEvidenceImage
+                label="MTC · Averaged ROC curve"
+                src={visualEvidence.rocCurveComparison}
+                alt="MTC averaged ROC curve"
+              />
+            )}
+            {visualEvidence.valAccuracyComparison && (
+              <VisualEvidenceImage
+                label="MTC · Validation Accuracy"
+                src={visualEvidence.valAccuracyComparison}
+                alt="MTC validation accuracy"
+              />
             )}
           </div>
         </div>
@@ -303,22 +249,26 @@ export function ResultAnalysisTab({
             </Tag>
           </div>
 
-          <p className="assessment-summary">
-            해당 <strong>{selectedResult.model}</strong>은{' '}
-            <strong>{selectedResult.dataset ?? '테스트 데이터셋'}</strong>에 대한{' '}
-            <strong>{selectedResult.attack}</strong> 공격에 대해 공격 성공률이{' '}
-            <strong className="assessment-summary-num">
-              {selectedResult.attackSuccessRate ?? selectedResult.successRate}
-            </strong>
-            로 <strong>{riskLabel}</strong> 수준으로 나타났다.
-          </p>
+          {assessmentPrompt ? (
+            <p className="assessment-summary">{assessmentPrompt}</p>
+          ) : (
+            <p className="assessment-summary">
+              해당 <strong>{selectedResult.model}</strong>은{' '}
+              <strong>{selectedResult.dataset ?? '테스트 데이터셋'}</strong>에 대한{' '}
+              <strong>{selectedResult.attack}</strong> 공격에 대해 공격 성공률이{' '}
+              <strong className="assessment-summary-num">
+                {selectedResult.attackSuccessRate ?? selectedResult.successRate}
+              </strong>
+              로 <strong>{riskLabel}</strong> 수준으로 나타났다.
+            </p>
+          )}
 
           <div className="assessment-divider" />
 
           <div>
             <div className="assessment-sub-label">등급 기준 및 해석</div>
             <dl className="grade-legend">
-              {GRADE_CRITERIA.map((g) => {
+              {gradeCriteria.map((g) => {
                 const isCurrent = g.risk === selectedResult.risk;
                 return (
                   <div
@@ -347,7 +297,7 @@ export function ResultAnalysisTab({
           <span>Security Recommendations</span>
         </div>
         <ol className="rec-list">
-          {RECOMMENDATIONS.map((r) => (
+          {recommendations.map((r) => (
             <li key={r.num} className="rec-item">
               <div className="rec-number">{r.num}</div>
               <div className="rec-content">
@@ -358,6 +308,34 @@ export function ResultAnalysisTab({
           ))}
         </ol>
       </div>
+    </div>
+  );
+}
+
+interface VisualEvidenceImageProps {
+  label: string;
+  src: string;
+  alt: string;
+}
+
+function VisualEvidenceImage({ label, src, alt }: VisualEvidenceImageProps) {
+  return (
+    <div>
+      <div className="bp6-text-muted" style={{ fontSize: 12, marginBottom: 6 }}>
+        {label}
+      </div>
+      <img
+        src={src}
+        alt={alt}
+        style={{
+          width: '100%',
+          maxHeight: 320,
+          objectFit: 'contain',
+          background: '#f5f8fa',
+          borderRadius: 4,
+          border: '1px solid rgba(16,22,26,0.1)',
+        }}
+      />
     </div>
   );
 }
