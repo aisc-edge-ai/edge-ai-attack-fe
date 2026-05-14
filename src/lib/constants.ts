@@ -23,9 +23,14 @@ export const ROUTE_TITLES: Record<string, string> = {
 
 // RISK_LABELS와 RISK_STYLES는 RiskBadge 컴포넌트 내부로 이동 (Blueprint Tag 활용)
 
-// v1 백엔드가 실행 가능한 범위. voice/autonomous는 미구현.
-export const SUPPORTED_MODEL_TYPES = ['cctv'] as const;
-export const SUPPORTED_ATTACK_TYPE_IDS = ['atk-hiding', 'atk-altering', 'atk-creating'] as const;
+// v1 백엔드가 실행 가능한 범위. autonomous / voice 는 미구현(준비 중).
+export const SUPPORTED_MODEL_TYPES = ['cctv', 'classification'] as const;
+export const SUPPORTED_ATTACK_TYPE_IDS = [
+  'atk-hiding',
+  'atk-altering',
+  'atk-creating',
+  'atk-mtc',
+] as const;
 
 export type SupportedModelType = (typeof SUPPORTED_MODEL_TYPES)[number];
 export type SupportedAttackTypeId = (typeof SUPPORTED_ATTACK_TYPE_IDS)[number];

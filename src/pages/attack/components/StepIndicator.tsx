@@ -7,8 +7,9 @@ interface StepIndicatorProps {
 
 const steps = [
   { number: 1, label: '모델 종류 선택' },
-  { number: 2, label: '공격 종류 선택' },
-  { number: 3, label: '데이터 소스 및 실행' },
+  { number: 2, label: '세부 모델 선택' },
+  { number: 3, label: '공격 종류 선택' },
+  { number: 4, label: '데이터 소스 및 실행' },
 ];
 
 export function StepIndicator({ currentStep }: StepIndicatorProps) {

@@ -18,7 +18,6 @@ export function useAttackProgress(
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
-  const mockIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectAttemptRef = useRef(0);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressStatusRef = useRef<AttackProgress['status'] | null>(null);
@@ -28,10 +27,6 @@ export function useAttackProgress(
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
-    }
-    if (mockIntervalRef.current) {
-      clearInterval(mockIntervalRef.current);
-      mockIntervalRef.current = null;
     }
     if (reconnectTimerRef.current) {
       clearTimeout(reconnectTimerRef.current);
@@ -116,56 +111,7 @@ export function useAttackProgress(
 
     progressStatusRef.current = null;
 
-    // DEV + MSW mock 모드에서만 WebSocket mock 사용
-    if (import.meta.env.DEV && import.meta.env.VITE_MOCK_API === 'true') {
-      queueMicrotask(() => {
-        setIsConnected(true);
-        setError(null);
-      });
-      let current = 0;
-      const total = 100;
-
-      const steps = [
-        '공격 환경 준비 중...',
-        '적대적 데이터 생성 중...',
-        '모의 공격 수행 중...',
-        '결과 분석 중...',
-      ];
-
-      mockIntervalRef.current = setInterval(() => {
-        const increment = Math.floor(Math.random() * 5) + 2;
-        current = Math.min(current + increment, total);
-
-        const stepIndex = Math.min(
-          Math.floor((current / total) * steps.length),
-          steps.length - 1
-        );
-
-        const status = current >= total ? 'completed' : 'running';
-        const eta =
-          current > 0 ? Math.ceil(((total - current) / current) * 10) : 0;
-
-        setProgress({
-          attackId,
-          status,
-          progress: current,
-          total,
-          currentStep: `${steps[stepIndex]} (${current}/${total})`,
-          eta,
-        });
-
-        if (current >= total) {
-          if (mockIntervalRef.current) {
-            clearInterval(mockIntervalRef.current);
-            mockIntervalRef.current = null;
-          }
-        }
-      }, 400);
-
-      return cleanup;
-    }
-
-    // 프로덕션: 실제 WebSocket 연결 (재연결 지원)
+    // 실제 WebSocket 연결 (재연결 지원). MSW 제거 이후 분기 단일화.
     const connectTimer = setTimeout(() => {
       connectWebSocket(attackId);
     }, 0);

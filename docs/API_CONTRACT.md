@@ -87,8 +87,10 @@ Authorization: Bearer {accessToken}
 ]
 ```
 
-**modelType 값:** `"cctv"` | `"voice"` | `"autonomous"`
+**modelType 값:** `"cctv"` | `"voice"` | `"autonomous"` | `"classification"`
 **status 값:** `"active"` | `"testing"` | `"offline"`
+
+> `"classification"` 은 이미지 분류 모델(예: CNN/ResNet/VGG/AlexNet, CIFAR-10) — Model Type Inference (MTC) 공격 대상. mock provider 단계에서는 4개 모델을 1 entry 로 묶어서 반환 (`"이미지 분류 모델 4종"`).
 
 ---
 
@@ -98,7 +100,7 @@ Authorization: Bearer {accessToken}
 모델 타입별 사용 가능한 공격 유형 조회.
 
 **Query Params:**
-- `modelType` (required): `"cctv"` | `"voice"` | `"autonomous"`
+- `modelType` (required): `"cctv"` | `"voice"` | `"autonomous"` | `"classification"`
 
 **Response (200):**
 ```json
@@ -133,11 +135,16 @@ Authorization: Bearer {accessToken}
   "modelType": "cctv",
   "attackTypeIds": ["atk-hiding"],
   "dataSource": "generate",
-  "datasetId": "DS-001"  // dataSource가 "load"일 때만
+  "datasetIds": ["DS-001"]
 }
 ```
 
-**dataSource 값:** `"generate"` | `"load"`
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `modelType` | `"cctv"` \| `"voice"` \| `"autonomous"` | 모델 유형 |
+| `attackTypeIds` | `string[]` | 1개 이상 — 다중 공격 동시 실행 지원 |
+| `dataSource` | `"generate"` \| `"load"` | 'generate' = 백엔드가 데이터 생성, 'load' = 기존 데이터셋 사용 |
+| `datasetIds` | `string[]` | `dataSource='load'` 면 1개 이상, `'generate'` 면 빈 배열 |
 
 **Response (200):**
 ```json
@@ -145,6 +152,11 @@ Authorization: Bearer {accessToken}
 ```
 
 공격은 비동기로 실행되며, 진행 상황은 WebSocket으로 전송.
+
+### POST /attack/{attackId}/cancel
+실행 중인 공격 취소.
+
+**Response (200):** 빈 body 또는 `{ "cancelled": true }`. 클라이언트는 status 만 확인.
 
 ### WS /ws/attack/{attackId}/progress
 공격 실행 진행 상황 실시간 수신.
@@ -192,6 +204,15 @@ Authorization: Bearer {accessToken}
 ```
 
 **datasetType 값:** `"image_patch"` | `"audio_noise"` | `"noise_tensor"`
+
+### GET /datasets/visualization?attackTypeIds=&kind=
+공격 위자드 마지막 step 에서 미리보기용 데이터셋 조회.
+
+**Query Params:**
+- `attackTypeIds` (required): 선택된 공격 ID 들을 콤마로 연결한 CSV (e.g., `"atk-hiding,atk-pgd"`)
+- `kind` (required): `"latest"` (최신) | `"fixed"` (고정 샘플)
+
+**Response (200):** `Dataset[]` (위와 동일 형식)
 
 ### POST /datasets
 새 데이터셋 업로드. `multipart/form-data`.
@@ -300,6 +321,18 @@ Authorization: Bearer {accessToken}
 | `confThreshold` | number | optional | 객체 탐지 confidence threshold (0.0 ~ 1.0). Metadata 테이블에 노출 | 평가 설정 |
 | `averageCIoU` | number | optional | 평균 Complete IoU (0.0 ~ 1.0). Metadata 테이블에 노출 | 백엔드 계산 |
 | `dataset` | string | optional | 평가에 사용한 테스트 데이터셋 이름. Vulnerability Assessment prose 에 삽입 (e.g., `"해당 YOLOv5은 demo_hiding_test에 대한 Patch 공격에 대해..."`) | 실행 시 입력 |
+| `inferenceAccuracy` | object | optional | **MTC 전용** — `{ baseline, blackbox, graybox }` 각 0~100 정수. PDF 결과 표 (Probability / +Feature1 / +Feature1+Feature2) 의 best validation accuracy | `results_raw/comparison/summary_comparison.csv` |
+
+#### MTC 결과의 `detail.visualEvidence` 필드 (선택)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `confusionMatrixCombined` | string | 4모델 × 3방법 confusion matrix 합본 이미지 URL — Prominent 좌측 영역에 렌더 |
+| `rocCurveComparison` | string | 방법별 Averaged ROC curve 이미지 URL — Visual Evidence 섹션 |
+| `valAccuracyComparison` | string | 방법별 Validation Accuracy 학습곡선 이미지 URL — Visual Evidence 섹션 |
+
+> 백엔드는 이 이미지들을 `/artifacts/{resultId}/...` 와 같은 정적 자산 path 로 제공.
+> mock 단계에서는 `/mtc-samples/*.png` (`public/mtc-samples/` 정적 자산) 로 응답.
 
 **프론트엔드 사용처**:
 - `src/pages/results/components/ResultAnalysisTab.tsx`
@@ -340,9 +373,31 @@ fallback 렌더. 그러나 객체 탐지(`modelType === "객체 탐지"`) 결과
   "totalModels": 12,
   "totalAttacks": 3450,
   "avgSuccessRate": 24.8,
-  "safetyVerified": 8
+  "safetyVerified": 8,
+  "modelsDelta": 2,
+  "attacksDelta": 145,
+  "successRateDelta": -1.2,
+  "safetyVerifiedDelta": 1
 }
 ```
+
+`*Delta` 필드는 전 기간 대비 변화량(선택). 미구현 시 생략해도 됨 — UI 는 delta 없으면 변화량 칩을 숨김.
+
+### Dashboard 보조 endpoint (mock 폴백 중)
+
+아래 endpoint 는 백엔드 미구현 단계에서 프론트가 `withMockFallback` 으로 mock 데이터로 대체.
+실제 응답이 200 으로 오기 전까지 클라이언트는 mock 으로 계속 동작 — 백엔드 구현 완료
+시 코드 변경 없이 자동 전환.
+
+| Endpoint | 응답 타입 | 참조 |
+|----------|----------|------|
+| `GET /dashboard/trend` | `DashboardTrendPoint[]` | `src/types/dashboard.ts` |
+| `GET /dashboard/devices` | `DeviceStatus[]` | `src/types/dashboard.ts` |
+| `GET /dashboard/model-vulnerabilities` | `ModelVulnerabilityScore[]` | `src/types/dashboard.ts` |
+| `GET /dashboard/risk-distribution` | `RiskDistribution` | `src/types/dashboard.ts` |
+| `GET /dashboard/recent-attacks` | `RecentLog[]` | `src/types/dashboard.ts` |
+
+`risk` 필드 값: `"high"` | `"low"` | `"none"` (RecentLog 만 해당).
 
 ---
 
@@ -363,3 +418,23 @@ fallback 렌더. 그러나 객체 탐지(`modelType === "객체 탐지"`) 결과
 | 403 | 권한 없음 |
 | 404 | 리소스 없음 |
 | 500 | 서버 에러 |
+
+---
+
+## 응답 형태 표준
+
+- **페이지네이션**: `{ data: T[], total: number }` (현재 `GET /results` 만 사용 — `PaginatedResponse<T>` in `src/types/common.ts`)
+- **단건 리소스**: 객체 그대로
+- **목록 (페이지네이션 없음)**: `T[]` (예: `/models`, `/datasets`, `/attack`)
+- **에러**: `{ message: string, code?: string }` (HTTP status 와 함께)
+
+## 백엔드 미구현 영역 정리
+
+| 영역 | 상태 | 비고 |
+|------|------|------|
+| Auth refresh | 구현 필요 | 클라이언트가 401 → /auth/refresh 호출하는 흐름 작동 검증 필요 |
+| `/auth/logout` | 미구현 (선택) | 토큰 블랙리스트 필요 시 구현 |
+| Dashboard 보조 5종 | mock 폴백 중 | 위 표 참조 |
+| Voice 모델 (Resemblyzer/ECAPA-TDNN) | mock provider | hook 단에서 mock 응답 — 백엔드는 신경 X (`src/lib/mock-providers.ts`) |
+| Whisper 모델 | 백엔드 구현 (`/models` 에 포함) | mock 모델과 hook 단에서 자연 병합 |
+| MTC (classification 모델군) | **백엔드 통합 완료** | 백엔드가 `/models`, `/attack?modelType=classification`, `/datasets/visualization`, `/attack/execute`, `/results`, `/results/{id}` 모두 처리. 데이터셋 ID = `DS-MTC01` (CIFAR-10). Python 학습 epochs 는 `ML_MTC_EPOCHS` 환경변수로 단축 가능 (기본 5, 풀 학습 100). 정적 자산은 `/api/static/mtc/results_vis/{runId}/...` 로 서빙. |

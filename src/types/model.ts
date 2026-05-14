@@ -1,4 +1,4 @@
-export type ModelType = 'cctv' | 'voice' | 'autonomous';
+export type ModelType = 'cctv' | 'voice' | 'autonomous' | 'classification';
 export type ModelStatus = 'active' | 'testing' | 'offline';
 
 export interface Model {

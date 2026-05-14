@@ -6,6 +6,10 @@ import { FilterBar, type FilterOption } from './FilterBar';
 import { SuccessRateChart } from './SuccessRateChart';
 import { AccuracyDropChart } from './AccuracyDropChart';
 import { ResultLogTable, type ModelGroup } from './ResultLogTable';
+import {
+  aggregateForAccuracyDrop,
+  aggregateForSuccessRate,
+} from '@/lib/result-aggregation';
 import type { AttackResult } from '@/types';
 
 interface ResultSummaryTabProps {
@@ -58,6 +62,9 @@ export function ResultSummaryTab({ onViewAnalysis }: ResultSummaryTabProps) {
   const { data: resultsData, isLoading: resultsLoading } = useResults({ size: 500 });
 
   const allResults = useMemo(() => resultsData?.data ?? [], [resultsData]);
+
+  const accuracyDropData = useMemo(() => aggregateForAccuracyDrop(allResults), [allResults]);
+  const successRateData = useMemo(() => aggregateForSuccessRate(allResults), [allResults]);
 
   const modelOptions = useMemo<FilterOption[]>(
     () => [
@@ -165,11 +172,13 @@ export function ResultSummaryTab({ onViewAnalysis }: ResultSummaryTabProps) {
           <Icon icon="grid-view" size={12} />
           <span>Properties</span>
         </div>
-        <div className="results-charts-section">
-          <div className="charts-grid">
-            <SuccessRateChart />
-            <AccuracyDropChart />
-          </div>
+        <div className="properties-chart-grid">
+          <section className="properties-chart-panel">
+            <SuccessRateChart data={successRateData} />
+          </section>
+          <section className="properties-chart-panel">
+            <AccuracyDropChart data={accuracyDropData} />
+          </section>
         </div>
       </div>
 

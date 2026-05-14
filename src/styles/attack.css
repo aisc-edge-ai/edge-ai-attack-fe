@@ -71,8 +71,8 @@
 }
 
 .config-panel {
-  width: 340px;
-  flex-shrink: 0;
+  flex: 4;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--bp-border);
@@ -82,7 +82,7 @@
 .config-panel-body {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 20px 24px;
 }
 
 .config-panel-header {
@@ -116,69 +116,181 @@
 }
 
 /* ===========================
-   Workflow Canvas
+   Attack Graphic Canvas — modelType+attackId 별 SVG 일러스트
+   향후 영상 생성형 AI 결과로 교체 예정.
    =========================== */
-.workflow-canvas {
-  flex: 1;
-  background: #FAFBFC;
+.attack-graphic-canvas {
+  flex: 6;
+  background: linear-gradient(135deg, #fafbfc 0%, #eef2f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
   position: relative;
+  overflow: hidden;
 }
 
-.workflow-canvas .react-flow__controls {
-  bottom: 12px;
-  right: 12px;
-  left: auto;
+.attack-graphic {
+  width: 100%;
+  height: 100%;
+  max-width: 720px;
+  max-height: 480px;
+  display: block;
+  transition: opacity 220ms ease, filter 220ms ease, transform 280ms ease;
 }
 
-.workflow-canvas .react-flow__controls button {
-  border: 1px solid var(--bp-border);
-  background: var(--bp-bg-card);
+.attack-graphic--idle {
+  opacity: 0.85;
 }
 
-/* ===========================
-   Workflow Nodes
-   =========================== */
-.workflow-node {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px 20px;
-  width: 200px;
-  border: 1px solid var(--bp-border);
-  border-radius: 3px;
-  background: var(--bp-bg-card);
-  box-shadow: 0 1px 3px rgba(16, 22, 26, 0.1);
-  cursor: grab;
+.attack-graphic--preview {
+  opacity: 0.7;
+  filter: saturate(0.85);
 }
 
-.workflow-node:hover {
-  box-shadow: 0 2px 8px rgba(16, 22, 26, 0.15);
+.attack-graphic--selected {
+  filter: drop-shadow(0 6px 24px rgba(45, 114, 210, 0.18));
 }
 
-.workflow-node-model .bp6-icon { color: var(--bp-primary); }
-.workflow-node-attack .bp6-icon { color: var(--bp-warning); }
-.workflow-node-data .bp6-icon { color: var(--bp-success); }
-
-.workflow-node-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--bp-text-primary);
+.attack-graphic--running {
+  animation: graphic-pulse-glow 1.8s ease-in-out infinite;
 }
 
-.workflow-node-sub {
-  font-size: 12px;
-  color: var(--bp-text-secondary);
-  margin-top: 2px;
+@keyframes graphic-pulse-glow {
+  0%, 100% { filter: drop-shadow(0 6px 16px rgba(205, 66, 70, 0.18)); }
+  50% { filter: drop-shadow(0 6px 32px rgba(205, 66, 70, 0.5)); }
 }
 
-.workflow-node-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 2px;
+/* Default placeholder */
+.attack-graphic--default .default-pulse {
+  transform-origin: center;
+  animation: default-breathe 3.2s ease-in-out infinite;
 }
 
-.workflow-node-tags .bp6-tag { font-size: 11px; }
+@keyframes default-breathe {
+  0%, 100% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+/* CCTV variant */
+.attack-graphic--cctv .cctv-scan {
+  animation: cctv-scan-move 2.6s linear infinite;
+}
+
+@keyframes cctv-scan-move {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(310px); opacity: 0; }
+}
+
+.attack-graphic--cctv .cctv-rec {
+  animation: cctv-rec-blink 1.4s ease-in-out infinite;
+}
+
+@keyframes cctv-rec-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.attack-graphic--cctv .cctv-patch {
+  transform-origin: 298px 208px;
+  animation: cctv-patch-flicker 0.9s ease-in-out infinite;
+}
+
+@keyframes cctv-patch-flicker {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+.attack-graphic--cctv .cctv-box-altering {
+  animation: cctv-box-shift 1.6s ease-in-out infinite;
+}
+
+@keyframes cctv-box-shift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(6px, -4px); }
+}
+
+.attack-graphic--cctv .cctv-hidden rect[fill^="rgba(205"] {
+  animation: cctv-hidden-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes cctv-hidden-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+.attack-graphic--cctv .cctv-fake {
+  animation: cctv-fake-appear 1.4s ease-in-out infinite;
+}
+
+@keyframes cctv-fake-appear {
+  0% { opacity: 0; transform: translateY(-6px); }
+  30%, 70% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+/* Voice variant */
+.attack-graphic--voice .voice-wave-clean {
+  animation: voice-wave-drift 4s linear infinite;
+}
+
+.attack-graphic--voice .voice-wave-attack {
+  animation: voice-wave-drift 2.2s linear infinite;
+}
+
+.attack-graphic--voice .voice-wave-shimmer {
+  animation: voice-wave-drift 1.2s linear infinite;
+}
+
+@keyframes voice-wave-drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-12px); }
+}
+
+.attack-graphic--voice .voice-decision-bar {
+  transform-origin: left center;
+  animation: voice-bar-grow 2.4s ease-in-out infinite;
+}
+
+@keyframes voice-bar-grow {
+  0% { transform: scaleX(0.05); }
+  60% { transform: scaleX(1); }
+  100% { transform: scaleX(1); }
+}
+
+/* MTC / Classification variant */
+.attack-graphic--mtc .mtc-layer {
+  transform-origin: center;
+  animation: mtc-layer-flow 2.4s ease-in-out infinite;
+}
+
+@keyframes mtc-layer-flow {
+  0%, 100% { opacity: 0.6; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.05); }
+}
+
+.attack-graphic--mtc .mtc-bar {
+  transform-origin: left center;
+  animation: mtc-bar-fill 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes mtc-bar-fill {
+  0% { transform: scaleX(0); }
+  60% { transform: scaleX(1); }
+  100% { transform: scaleX(1); }
+}
+
+.attack-graphic--mtc .mtc-leak-line {
+  stroke-dasharray: 6 4;
+  animation: mtc-leak-dash 1.8s linear infinite;
+}
+
+@keyframes mtc-leak-dash {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -20; }
+}
 
 /* ===========================
    Attack Selection Cards
@@ -329,6 +441,16 @@
 .dataset-info-meta { display: flex; gap: 6px; }
 .dataset-info-meta .bp6-tag { font-size: 11px; }
 
+.dataset-multi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 28px 4px 28px;
+  font-size: 12px;
+  color: var(--bp-text-secondary);
+}
+.dataset-multi-header .bp6-tag { font-size: 11px; }
+.dataset-multi-header .bp6-button { font-size: 11px; }
 .dataset-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 0 28px; }
 .dataset-list-item { border: 1px solid var(--bp-border) !important; transition: all 0.1s ease; }
 .dataset-list-item:hover { border-color: var(--bp-primary) !important; }
@@ -363,7 +485,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid var(--bp-border);
   border-radius: 3px;
   cursor: pointer;

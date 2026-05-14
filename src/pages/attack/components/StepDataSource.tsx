@@ -11,6 +11,7 @@ import {
   Radio,
   Spinner,
   SpinnerSize,
+  Button,
 } from '@blueprintjs/core';
 import type { Dataset } from '@/types';
 
@@ -20,47 +21,30 @@ export function StepDataSource() {
     setDataSource,
     datasetSubOption,
     setDatasetSubOption,
-    selectedDatasetId,
-    setDatasetId,
+    selectedDatasetIds,
     selectedAttackIds,
+    selectedModelType,
+    toggleDatasetId,
+    selectAllDatasets,
+    clearDatasets,
+    setHoveredDatasetId,
   } = useAttackWizardStore();
 
   const isLoadMode = dataSource === 'load';
   const kind = datasetSubOption ?? null;
 
   const latestQuery = useVisualizationDatasets({
+    modelType: selectedModelType,
     attackTypeIds: selectedAttackIds,
     kind: 'latest',
     enabled: isLoadMode && kind === 'latest',
   });
   const fixedQuery = useVisualizationDatasets({
+    modelType: selectedModelType,
     attackTypeIds: selectedAttackIds,
     kind: 'fixed',
     enabled: isLoadMode && kind === 'fixed',
   });
-
-  // 라디오 변경 시 datasetId 리셋
-  useEffect(() => {
-    if (!isLoadMode) {
-      if (selectedDatasetId !== null) setDatasetId(null);
-    }
-  }, [isLoadMode, selectedDatasetId, setDatasetId]);
-
-  // 선택된 datasetId가 현재 표시되는 목록에 없으면 리셋
-  useEffect(() => {
-    if (!isLoadMode || !kind) return;
-    const list = (kind === 'latest' ? latestQuery.data : fixedQuery.data) ?? [];
-    if (selectedDatasetId && !list.some((ds) => ds.id === selectedDatasetId)) {
-      setDatasetId(null);
-    }
-  }, [
-    isLoadMode,
-    kind,
-    latestQuery.data,
-    fixedQuery.data,
-    selectedDatasetId,
-    setDatasetId,
-  ]);
 
   return (
     <div className="animate-fade-in">
@@ -136,29 +120,34 @@ export function StepDataSource() {
             onChange={(e) => {
               const val = (e.target as HTMLInputElement).value as 'latest' | 'fixed';
               setDatasetSubOption(val);
-              setDatasetId(null);
             }}
             selectedValue={datasetSubOption || ''}
           >
             <Radio value="latest" label="가장 최근 데이터셋" />
             {kind === 'latest' && (
-              <DatasetList
+              <DatasetMultiList
                 isLoading={latestQuery.isLoading}
                 isError={latestQuery.isError}
                 data={latestQuery.data ?? []}
-                selectedDatasetId={selectedDatasetId}
-                onSelect={setDatasetId}
+                selectedIds={selectedDatasetIds}
+                onToggle={toggleDatasetId}
+                onSelectAll={selectAllDatasets}
+                onClear={clearDatasets}
+                onHover={setHoveredDatasetId}
               />
             )}
 
             <Radio value="fixed" label="고정 데이터셋" style={{ marginTop: 12 }} />
             {kind === 'fixed' && (
-              <DatasetList
+              <DatasetMultiList
                 isLoading={fixedQuery.isLoading}
                 isError={fixedQuery.isError}
                 data={fixedQuery.data ?? []}
-                selectedDatasetId={selectedDatasetId}
-                onSelect={setDatasetId}
+                selectedIds={selectedDatasetIds}
+                onToggle={toggleDatasetId}
+                onSelectAll={selectAllDatasets}
+                onClear={clearDatasets}
+                onHover={setHoveredDatasetId}
               />
             )}
           </RadioGroup>
@@ -168,21 +157,36 @@ export function StepDataSource() {
   );
 }
 
-interface DatasetListProps {
+interface DatasetMultiListProps {
   isLoading: boolean;
   isError: boolean;
   data: Dataset[];
-  selectedDatasetId: string | null;
-  onSelect: (id: string) => void;
+  selectedIds: string[];
+  onToggle: (id: string) => void;
+  onSelectAll: (ids: string[]) => void;
+  onClear: () => void;
+  onHover?: (id: string | null) => void;
 }
 
-function DatasetList({
+function DatasetMultiList({
   isLoading,
   isError,
   data,
-  selectedDatasetId,
-  onSelect,
-}: DatasetListProps) {
+  selectedIds,
+  onToggle,
+  onSelectAll,
+  onClear,
+  onHover,
+}: DatasetMultiListProps) {
+  // 데이터 도착 후 첫 진입 시 디폴트 전체 선택 (selectedIds === [] 가드)
+  // deps 에 selectedIds 절대 추가 금지 — 무한 토글 방지
+  useEffect(() => {
+    if (data.length > 0 && selectedIds.length === 0) {
+      onSelectAll(data.map((d) => d.id));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+
   if (isLoading) {
     return (
       <div className="dataset-empty-state">
@@ -210,35 +214,56 @@ function DatasetList({
     );
   }
 
+  const allSelected = data.every((d) => selectedIds.includes(d.id));
+
   return (
-    <div className="dataset-list">
-      {data.map((ds) => (
-        <Card
-          key={ds.id}
-          interactive
-          selected={selectedDatasetId === ds.id}
-          compact
-          className="dataset-list-item"
-          onClick={() => onSelect(ds.id)}
-        >
-          <div className="dataset-list-content">
-            <div className="dataset-list-left">
-              <Icon
-                icon={selectedDatasetId === ds.id ? 'tick-circle' : 'circle'}
-                size={16}
-                intent={selectedDatasetId === ds.id ? 'primary' : 'none'}
-              />
-              <span className="dataset-list-name">{ds.name}</span>
-            </div>
-            <div className="dataset-list-right">
-              <Tag minimal round>
-                {ds.type}
-              </Tag>
-              <span className="dataset-list-size">{ds.size}</span>
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
+    <>
+      <div className="dataset-multi-header">
+        <Tag minimal round intent="primary">
+          {selectedIds.length} / {data.length} 선택됨
+        </Tag>
+        <Button
+          minimal
+          small
+          icon={allSelected ? 'cross' : 'tick'}
+          text={allSelected ? '전체 해제' : '전체 선택'}
+          onClick={() => (allSelected ? onClear() : onSelectAll(data.map((d) => d.id)))}
+        />
+      </div>
+      <div className="dataset-list">
+        {data.map((ds) => {
+          const checked = selectedIds.includes(ds.id);
+          return (
+            <Card
+              key={ds.id}
+              interactive
+              selected={checked}
+              compact
+              className="dataset-list-item"
+              onClick={() => onToggle(ds.id)}
+              onMouseEnter={() => onHover?.(ds.id)}
+              onMouseLeave={() => onHover?.(null)}
+            >
+              <div className="dataset-list-content">
+                <div className="dataset-list-left">
+                  <Icon
+                    icon={checked ? 'tick-circle' : 'circle'}
+                    size={16}
+                    intent={checked ? 'primary' : 'none'}
+                  />
+                  <span className="dataset-list-name">{ds.name}</span>
+                </div>
+                <div className="dataset-list-right">
+                  <Tag minimal round>
+                    {ds.type}
+                  </Tag>
+                  <span className="dataset-list-size">{ds.size}</span>
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+    </>
   );
 }
