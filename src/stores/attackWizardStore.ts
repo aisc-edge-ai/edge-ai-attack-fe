@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import type { Model, ModelType } from '@/types';
-import { isAttackTypeSupported, isModelTypeSupported } from '@/lib/constants';
+import {
+  CCTV_MODEL_LABELS,
+  isAttackTypeSupported,
+  isModelTypeSupported,
+} from '@/lib/constants';
 
 type WizardStep = 1 | 2 | 3 | 4;
 
@@ -163,3 +167,42 @@ export const useAttackWizardStore = create<AttackWizardState>()((set, get) => ({
     }
   },
 }));
+
+/**
+ * AttackGraphicCanvas 가 우측 그래픽에 넘길 input 들을 한 번에 계산하는 hook.
+ *
+ *  - effectiveModelType / effectiveAttackId : hover 우선, 없으면 selection
+ *  - modelDisplayLabel : CCTV 한정. selectedModelId -> CCTV_MODEL_LABELS 매핑.
+ *    매핑 없으면 selectedModelName fallback. CCTV 가 아니면 undefined
+ *  - datasetIdForLabel : Stage 04 hoveredDatasetId 우선, 없으면 selectedDatasetIds[0]
+ *
+ * dataset 메타 lookup (이름/사이즈) 은 호출부에서 join — selector 는 id 만 반환.
+ */
+export const useCctvPreviewState = () => {
+  const selectedModelType = useAttackWizardStore((s) => s.selectedModelType);
+  const selectedModelId = useAttackWizardStore((s) => s.selectedModelId);
+  const selectedModelName = useAttackWizardStore((s) => s.selectedModelName);
+  const hoveredModelType = useAttackWizardStore((s) => s.hoveredModelType);
+  const hoveredAttackId = useAttackWizardStore((s) => s.hoveredAttackId);
+  const selectedAttackIds = useAttackWizardStore((s) => s.selectedAttackIds);
+  const hoveredDatasetId = useAttackWizardStore((s) => s.hoveredDatasetId);
+  const selectedDatasetIds = useAttackWizardStore((s) => s.selectedDatasetIds);
+
+  const effectiveModelType = hoveredModelType ?? selectedModelType;
+  const effectiveAttackId = hoveredAttackId ?? selectedAttackIds[0] ?? null;
+  const datasetIdForLabel = hoveredDatasetId ?? selectedDatasetIds[0] ?? null;
+
+  const modelDisplayLabel =
+    effectiveModelType === 'cctv'
+      ? (selectedModelId && CCTV_MODEL_LABELS[selectedModelId]) ||
+        selectedModelName ||
+        undefined
+      : undefined;
+
+  return {
+    effectiveModelType,
+    effectiveAttackId,
+    modelDisplayLabel,
+    datasetIdForLabel,
+  };
+};

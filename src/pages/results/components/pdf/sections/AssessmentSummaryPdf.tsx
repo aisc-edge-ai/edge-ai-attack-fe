@@ -11,7 +11,7 @@ interface AssessmentSummaryPdfProps {
 
 /**
  * 요약 prose — modelType 별 분기.
- *  - MTC: helper 의 `mtcText` 통째 단일 문단
+ *  - MTC / Voice: helper 의 `longText` 통째 단일 문단
  *  - 객체 탐지: 토큰 기반 inline 강조 조합
  */
 export function AssessmentSummaryPdf({
@@ -21,8 +21,8 @@ export function AssessmentSummaryPdf({
 }: AssessmentSummaryPdfProps) {
   const prompt = buildAssessmentPrompt(result, riskLabel);
 
-  if (prompt.kind === 'mtc' && prompt.mtcText) {
-    return <Text style={styles.summaryProse}>{prompt.mtcText}</Text>;
+  if ((prompt.kind === 'mtc' || prompt.kind === 'voice' || prompt.kind === 'imagenet') && prompt.longText) {
+    return <Text style={styles.summaryProse}>{prompt.longText}</Text>;
   }
 
   const t = prompt.tokens!;

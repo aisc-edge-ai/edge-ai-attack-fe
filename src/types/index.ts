@@ -5,3 +5,4 @@ export * from './attack';
 export * from './dataset';
 export * from './result';
 export * from './dashboard';
+export * from './preset';

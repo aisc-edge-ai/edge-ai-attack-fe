@@ -32,6 +32,15 @@ export interface AttackExecuteRequest {
   dataSource: 'generate' | 'load';
   /** dataSource='load' 면 1개 이상. 'generate' 면 빈 배열 또는 생략. */
   datasetIds: string[];
+  /**
+   * DeepVoice 공격 시 필수 — 모델 선택으로 결정:
+   * - MDL-V-RES → 'Resemblyzer'
+   * - MDL-V-ECAPA → 'ECAPA-TDNN'
+   *
+   * 단일 verifier 흐름: 1 공격 = 1 verifier = 1 result row.
+   * 비 voice 공격에서는 미사용.
+   */
+  verifier?: 'ECAPA-TDNN' | 'Resemblyzer';
 }
 
 /**

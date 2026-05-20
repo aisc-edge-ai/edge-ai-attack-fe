@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { API_BASE_URL } from '@/lib/constants';
+import { withAppBasename } from '@/lib/publicPath';
 import { useAuthStore } from '@/stores/authStore';
 import type { ApiError } from '@/types';
 
@@ -49,7 +50,7 @@ apiClient.interceptors.response.use(
 
       if (!refreshToken) {
         clearAuth();
-        window.location.href = '/login';
+        window.location.href = withAppBasename('/login');
         return Promise.reject(error);
       }
 
@@ -79,7 +80,7 @@ apiClient.interceptors.response.use(
         isRefreshing = false;
         refreshSubscribers = [];
         clearAuth();
-        window.location.href = '/login';
+        window.location.href = withAppBasename('/login');
         return Promise.reject(error);
       }
     }

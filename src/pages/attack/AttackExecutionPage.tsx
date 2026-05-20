@@ -52,12 +52,33 @@ export function AttackExecutionPage() {
       return;
     }
 
+    // DeepVoice 단일 verifier 흐름: 모델 선택 → verifier 매핑.
+    // MDL-V-RES → Resemblyzer / MDL-V-ECAPA → ECAPA-TDNN. 비 voice 는 undefined.
+    const verifier =
+      selectedModelId === 'MDL-V-RES'
+        ? 'Resemblyzer'
+        : selectedModelId === 'MDL-V-ECAPA'
+          ? 'ECAPA-TDNN'
+          : undefined;
+
+    if (selectedModelType === 'voice' && !verifier) {
+      const toaster = await AppToaster;
+      toaster.show({
+        message:
+          '음성 공격은 verifier 모델(MDL-V-RES / MDL-V-ECAPA)을 먼저 선택해야 합니다.',
+        intent: Intent.WARNING,
+        icon: 'warning-sign',
+      });
+      return;
+    }
+
     try {
       const result = await executeAttack.mutateAsync({
         modelType: selectedModelType,
         attackTypeIds: selectedAttackIds,
         dataSource,
         datasetIds: dataSource === 'load' ? selectedDatasetIds : [],
+        ...(verifier ? { verifier } : {}),
       });
       startJob({
         attackId: result.attackId,

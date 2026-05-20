@@ -7,12 +7,9 @@ import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { AttackExecutionPage } from '@/pages/attack/AttackExecutionPage';
 import { ResultsPage } from '@/pages/results/ResultsPage';
 import { ProjectManagementPage } from '@/pages/projects/ProjectManagementPage';
+import { getAppBasename } from '@/lib/publicPath';
 
-const routerBasename =
-  typeof window !== 'undefined' &&
-  (window.location.pathname === '/edge-ai' || window.location.pathname.startsWith('/edge-ai/'))
-    ? '/edge-ai'
-    : undefined;
+const routerBasename = getAppBasename() || undefined;
 
 export const router = createBrowserRouter([
   {

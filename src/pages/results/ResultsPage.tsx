@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tabs, Tab, Tag } from '@blueprintjs/core';
 import { ResultSummaryTab } from './components/ResultSummaryTab';
@@ -24,6 +24,14 @@ export function ResultsPage() {
     setActiveTab('analysis');
   };
 
+  // 탭 전환 또는 선택된 결과 변경 시 스크롤을 맨 위로 — 두 탭이 공유하는
+  // `.results-tab-content` 의 scrollTop 이 유지되어 새 콘텐츠가 중간부터
+  // 보이는 문제 방지.
+  const tabContentRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    tabContentRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+  }, [activeTab, selectedResult?.id]);
+
   return (
     <div className="results-page-layout">
       <div className="results-tab-bar">
@@ -43,7 +51,7 @@ export function ResultsPage() {
         </Tabs>
       </div>
 
-      <div className="results-tab-content">
+      <div className="results-tab-content" ref={tabContentRef}>
         {activeTab === 'summary' && <ResultSummaryTab onViewAnalysis={handleViewAnalysis} />}
         {activeTab === 'analysis' && (
           <ResultAnalysisTab

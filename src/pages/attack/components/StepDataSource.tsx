@@ -32,6 +32,9 @@ export function StepDataSource() {
 
   const isLoadMode = dataSource === 'load';
   const kind = datasetSubOption ?? null;
+  // DeepVoice 는 백엔드가 항상 6개 데이터셋 통합으로만 동작 — 개별 선택 잠금.
+  // cctv / classification 은 false → 기존 multi-select 동작 그대로.
+  const lockDatasetSelection = selectedModelType === 'voice';
 
   const latestQuery = useVisualizationDatasets({
     modelType: selectedModelType,
@@ -134,6 +137,7 @@ export function StepDataSource() {
                 onSelectAll={selectAllDatasets}
                 onClear={clearDatasets}
                 onHover={setHoveredDatasetId}
+                lockSelection={lockDatasetSelection}
               />
             )}
 
@@ -148,6 +152,7 @@ export function StepDataSource() {
                 onSelectAll={selectAllDatasets}
                 onClear={clearDatasets}
                 onHover={setHoveredDatasetId}
+                lockSelection={lockDatasetSelection}
               />
             )}
           </RadioGroup>
@@ -166,6 +171,11 @@ interface DatasetMultiListProps {
   onSelectAll: (ids: string[]) => void;
   onClear: () => void;
   onHover?: (id: string | null) => void;
+  /**
+   * 잠금 모드 — DeepVoice 처럼 백엔드가 항상 전체 데이터셋으로만 동작하는 경우.
+   * true 면 자동 전체 선택 유지 + 개별 카드 클릭/전체 해제 비활성 + 안내 chip.
+   */
+  lockSelection?: boolean;
 }
 
 function DatasetMultiList({
@@ -177,6 +187,7 @@ function DatasetMultiList({
   onSelectAll,
   onClear,
   onHover,
+  lockSelection = false,
 }: DatasetMultiListProps) {
   // 데이터 도착 후 첫 진입 시 디폴트 전체 선택 (selectedIds === [] 가드)
   // deps 에 selectedIds 절대 추가 금지 — 무한 토글 방지
@@ -222,25 +233,31 @@ function DatasetMultiList({
         <Tag minimal round intent="primary">
           {selectedIds.length} / {data.length} 선택됨
         </Tag>
-        <Button
-          minimal
-          small
-          icon={allSelected ? 'cross' : 'tick'}
-          text={allSelected ? '전체 해제' : '전체 선택'}
-          onClick={() => (allSelected ? onClear() : onSelectAll(data.map((d) => d.id)))}
-        />
+        {lockSelection ? (
+          <Tag minimal round intent="primary" icon="lock">
+            6개 데이터셋 통합 공격 (개별 선택 불가)
+          </Tag>
+        ) : (
+          <Button
+            minimal
+            small
+            icon={allSelected ? 'cross' : 'tick'}
+            text={allSelected ? '전체 해제' : '전체 선택'}
+            onClick={() => (allSelected ? onClear() : onSelectAll(data.map((d) => d.id)))}
+          />
+        )}
       </div>
-      <div className="dataset-list">
+      <div className="dataset-list" data-locked={lockSelection ? 'true' : undefined}>
         {data.map((ds) => {
           const checked = selectedIds.includes(ds.id);
           return (
             <Card
               key={ds.id}
-              interactive
+              interactive={!lockSelection}
               selected={checked}
               compact
               className="dataset-list-item"
-              onClick={() => onToggle(ds.id)}
+              onClick={lockSelection ? undefined : () => onToggle(ds.id)}
               onMouseEnter={() => onHover?.(ds.id)}
               onMouseLeave={() => onHover?.(null)}
             >

@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, Elevation, Button, Icon } from '@blueprintjs/core';
 import { useAttackJobStore, isJobRunning } from '@/stores/attackJobStore';
 import { AttackProgressPanel } from '@/pages/attack/components/AttackProgressPanel';
+import { stripAppBasename } from '@/lib/publicPath';
 
 export function AttackProgressDock() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export function AttackProgressDock() {
 
   // 모의 공격 페이지에서는 인라인 패널과 중복되므로 dock 숨김
   if (!activeJob) return null;
-  if (location.pathname === '/attack') return null;
+  if (stripAppBasename(location.pathname) === '/attack') return null;
 
   const { progress, status, modelName } = activeJob;
   const running = isJobRunning(status);
