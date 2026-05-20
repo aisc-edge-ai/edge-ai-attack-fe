@@ -8,6 +8,7 @@ import { EvidenceRenderer } from '@/components/evidence';
 import { RISK_LABELS, getGradeCriteria, getRecommendations } from '@/lib/risk-constants';
 import { AppToaster } from '@/lib/toaster';
 import { ProminentMetrics } from './ProminentMetrics';
+import { isImagenetResult } from './pdf/helpers/isImagenetResult';
 import type { AttackResult } from '@/types';
 
 interface ResultAnalysisTabProps {
@@ -84,6 +85,12 @@ export function ResultAnalysisTab({
 
   const visualEvidence = selectedResult.detail?.visualEvidence;
   const isMtc = !!selectedResult.inferenceAccuracy;
+  const isVoice = !!selectedResult.verifier;
+  const isImagenet = isImagenetResult(selectedResult);
+  const patched = selectedResult.detail?.metrics?.patched ?? {};
+  // README v2: 결과 CSV 는 per-run path. rawResultsUrl 에서 runId 추출.
+  const voiceRunId =
+    selectedResult.rawResultsUrl?.match(/results_raw\/([^/]+)/)?.[1] ?? '<runId>';
 
   const RISK_INTENTS: Record<string, Intent> = {
     vulnerable: Intent.DANGER,
@@ -96,9 +103,27 @@ export function ResultAnalysisTab({
   const recommendations = getRecommendations(selectedResult.modelType);
 
   const successRateLabel = selectedResult.attackSuccessRate ?? selectedResult.successRate;
-  const assessmentPrompt = isMtc
-    ? `해당 모델군에 대해 수행한 Model Type Classification 에서 공격 성공률이 ${successRateLabel} 로 나타나 ${riskLabel} 수준의 취약성을 보였다. 이는 공격자가 대상 모델의 출력값 또는 출력 분포를 분석함으로써, 사전에 정의된 N개의 후보 모델 중 해당 모델이 어떤 유형에 속하는지 식별할 가능성이 있음을 의미한다. 이와 같이 유출된 모델 구조 정보는 이후 모델 복제, 표적형 적대적 공격, 우회 공격 등 추가적인 공격의 기초 정보로 악용될 수 있다.`
-    : null;
+  let assessmentPrompt: string | null = null;
+  if (isMtc) {
+    assessmentPrompt = `해당 모델군에 대해 수행한 Model Type Classification 에서 공격 성공률이 ${successRateLabel} 로 나타나 ${riskLabel} 수준의 취약성을 보였다. 이는 공격자가 대상 모델의 출력값 또는 출력 분포를 분석함으로써, 사전에 정의된 N개의 후보 모델 중 해당 모델이 어떤 유형에 속하는지 식별할 가능성이 있음을 의미한다. 이와 같이 유출된 모델 구조 정보는 이후 모델 복제, 표적형 적대적 공격, 우회 공격 등 추가적인 공격의 기초 정보로 악용될 수 있다.`;
+  } else if (isVoice) {
+    assessmentPrompt = `해당 ${selectedResult.model}은(는) ${selectedResult.dataset ?? '데이터셋'} 환경에서 수행한 합성 음성 입력 공격(딥보이스) 점검 결과, 공격 성공률이 ${successRateLabel}로 나타나 ${riskLabel} 수준의 취약성을 보였다. 이는 공격자가 딥보이스 기반 합성 음성을 입력할 경우, 인식 모델이 비정상적으로 동작하거나 오인식할 가능성이 있음을 의미한다.`;
+  }
+
+  let assessmentJsx: React.ReactNode | null = null;
+  if (isImagenet) {
+    assessmentJsx = (
+      <p className="assessment-summary">
+        해당 <strong>{selectedResult.model}</strong>은(는){' '}
+        <strong>{selectedResult.dataset ?? 'ImageNet 데이터셋'}</strong>에 대해 수행한{' '}
+        <strong>{selectedResult.attack}</strong> 점검 결과, 공격 성공률이{' '}
+        <strong className="assessment-summary-num">{successRateLabel}</strong>로 나타나{' '}
+        <strong>{riskLabel}</strong> 수준의 취약성을 보였다. Contour 계열 공격은 이미지의
+        윤곽선(contour) 영역에만 perturbation을 적용하여 시각적 차이를 최소화하면서도
+        분류 결과를 변경할 수 있음을 보여준다.
+      </p>
+    );
+  }
 
   return (
     <div className="results-summary-content animate-fade-in">
@@ -156,7 +181,7 @@ export function ResultAnalysisTab({
                   <td className="analysis-meta-key">공격 기법</td>
                   <td className="analysis-meta-value">{selectedResult.attack}</td>
                 </tr>
-                {isMtc ? (
+                {isMtc && (
                   <>
                     <tr>
                       <td className="analysis-meta-key">데이터셋</td>
@@ -171,7 +196,54 @@ export function ResultAnalysisTab({
                       <td className="analysis-meta-value">results_raw/comparison/summary_comparison.csv</td>
                     </tr>
                   </>
-                ) : (
+                )}
+                {isVoice && (
+                  <>
+                    <tr>
+                      <td className="analysis-meta-key">데이터셋</td>
+                      <td className="analysis-meta-value">{selectedResult.dataset ?? '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">검증 임계값</td>
+                      <td className="analysis-meta-value">{selectedResult.confThreshold ?? '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">합성 엔진</td>
+                      <td className="analysis-meta-value">{selectedResult.attack}</td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">데이터 출처</td>
+                      <td className="analysis-meta-value">
+                        results_raw/{voiceRunId}/{selectedResult.verifier}/summary_results_{selectedResult.attack}.csv
+                      </td>
+                    </tr>
+                  </>
+                )}
+                {isImagenet && (
+                  <>
+                    <tr>
+                      <td className="analysis-meta-key">데이터셋</td>
+                      <td className="analysis-meta-value">
+                        {selectedResult.dataset ?? 'ImageNet subset (100 classes × 10)'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">Epsilon (ε)</td>
+                      <td className="analysis-meta-value">{patched.Linf ?? 0.03}</td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">샘플 수</td>
+                      <td className="analysis-meta-value">
+                        {typeof patched.n === 'number' ? patched.n.toLocaleString() : '1,000'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">데이터 출처</td>
+                      <td className="analysis-meta-value">results_raw/summary.csv</td>
+                    </tr>
+                  </>
+                )}
+                {!isMtc && !isVoice && !isImagenet && (
                   <>
                     <tr>
                       <td className="analysis-meta-key">Conf Threshold</td>
@@ -200,38 +272,68 @@ export function ResultAnalysisTab({
       {(visualEvidence?.patchImage ||
         visualEvidence?.confusionMatrix ||
         visualEvidence?.rocCurveComparison ||
-        visualEvidence?.valAccuracyComparison) && (
+        visualEvidence?.valAccuracyComparison ||
+        (visualEvidence?.sampleImages?.length ?? 0) > 0 ||
+        visualEvidence?.tsneClusterImage) && (
         <div className="results-section-card">
           <div className="results-section-header">
             <Icon icon="media" size={12} />
             <span>Visual Evidence</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, padding: 16 }}>
-            {visualEvidence.patchImage && (
-              <VisualEvidenceImage label="학습된 적대적 패치" src={visualEvidence.patchImage} alt="Adversarial patch" />
-            )}
-            {visualEvidence.confusionMatrix && (
+          {isVoice && visualEvidence?.tsneClusterImage ? (
+            <div style={{ padding: 16, maxWidth: 720, margin: '0 auto' }}>
               <VisualEvidenceImage
-                label="Confusion Matrix (패치 적용 후)"
-                src={visualEvidence.confusionMatrix}
-                alt="Confusion matrix"
+                label="Speaker Embedding t-SNE: Original vs Generated Voices"
+                src={visualEvidence.tsneClusterImage}
+                alt="t-SNE speaker embedding cluster"
               />
-            )}
-            {visualEvidence.rocCurveComparison && (
-              <VisualEvidenceImage
-                label="MTC · Averaged ROC curve"
-                src={visualEvidence.rocCurveComparison}
-                alt="MTC averaged ROC curve"
-              />
-            )}
-            {visualEvidence.valAccuracyComparison && (
-              <VisualEvidenceImage
-                label="MTC · Validation Accuracy"
-                src={visualEvidence.valAccuracyComparison}
-                alt="MTC validation accuracy"
-              />
-            )}
-          </div>
+            </div>
+          ) : isImagenet ? (
+            <div style={{ padding: 16 }}>
+              {visualEvidence!.sampleImages?.[0] && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: visualEvidence!.patchImage ? 16 : 0 }}>
+                  {visualEvidence!.sampleImages[0].clean && (
+                    <VisualEvidenceImage label="원본 이미지 (정상 분류)" src={visualEvidence!.sampleImages[0].clean} alt="Clean sample" />
+                  )}
+                  {visualEvidence!.sampleImages[0].patched && (
+                    <VisualEvidenceImage label="공격 이미지 (적대적 perturbation)" src={visualEvidence!.sampleImages[0].patched} alt="Patched sample" />
+                  )}
+                </div>
+              )}
+              {visualEvidence!.patchImage && (
+                <div style={{ maxWidth: 720, margin: '0 auto' }}>
+                  <VisualEvidenceImage label="공격 성공률 및 SSIM 비교 (4종 공격)" src={visualEvidence!.patchImage} alt="Attack summary plot" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, padding: 16 }}>
+              {visualEvidence!.patchImage && (
+                <VisualEvidenceImage label="학습된 적대적 패치" src={visualEvidence!.patchImage} alt="Adversarial patch" />
+              )}
+              {visualEvidence!.confusionMatrix && (
+                <VisualEvidenceImage
+                  label="Confusion Matrix (패치 적용 후)"
+                  src={visualEvidence!.confusionMatrix}
+                  alt="Confusion matrix"
+                />
+              )}
+              {visualEvidence!.rocCurveComparison && (
+                <VisualEvidenceImage
+                  label="MTC · Averaged ROC curve"
+                  src={visualEvidence!.rocCurveComparison}
+                  alt="MTC averaged ROC curve"
+                />
+              )}
+              {visualEvidence!.valAccuracyComparison && (
+                <VisualEvidenceImage
+                  label="MTC · Validation Accuracy"
+                  src={visualEvidence!.valAccuracyComparison}
+                  alt="MTC validation accuracy"
+                />
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -249,7 +351,9 @@ export function ResultAnalysisTab({
             </Tag>
           </div>
 
-          {assessmentPrompt ? (
+          {assessmentJsx ? (
+            assessmentJsx
+          ) : assessmentPrompt ? (
             <p className="assessment-summary">{assessmentPrompt}</p>
           ) : (
             <p className="assessment-summary">

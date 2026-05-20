@@ -454,6 +454,10 @@
 .dataset-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 0 28px; }
 .dataset-list-item { border: 1px solid var(--bp-border) !important; transition: all 0.1s ease; }
 .dataset-list-item:hover { border-color: var(--bp-primary) !important; }
+
+/* Lock 모드 (DeepVoice 6개 통합 공격) — 카드 hover/cursor 비활성. */
+.dataset-list[data-locked="true"] .dataset-list-item { cursor: default; opacity: 0.92; }
+.dataset-list[data-locked="true"] .dataset-list-item:hover { border-color: var(--bp-border) !important; transform: none; }
 .dataset-list-content { display: flex; align-items: center; justify-content: space-between; }
 .dataset-list-left { display: flex; align-items: center; gap: 8px; }
 .dataset-list-name { font-size: 13px; font-weight: 500; }
@@ -501,4 +505,678 @@
   background: rgba(45, 114, 210, 0.06);
   border-color: var(--bp-primary);
   box-shadow: inset 3px 0 0 var(--bp-primary);
+}
+
+/* ===========================
+   CCTV Scene Graphic (신규: 투명 배경 isometric 씬)
+   .attack-graphic--cctv-scene 클래스가 있는 SVG 한정.
+   기존 .attack-graphic--cctv 의 keyframes 와 중복되지 않도록 prefix 분리.
+   =========================== */
+
+.attack-graphic--cctv-scene {
+  overflow: visible;
+}
+
+/* idle 진입 시 객체/bbox/라벨이 muted */
+.attack-graphic--cctv-scene.attack-graphic--idle .cctv-scene-bbox,
+.attack-graphic--cctv-scene.attack-graphic--idle .cctv-scene-confidence,
+.attack-graphic--cctv-scene.attack-graphic--idle .cctv-scene-dataset-chip {
+  opacity: 0.35;
+}
+.attack-graphic--cctv-scene.attack-graphic--idle .cctv-scene-subject {
+  opacity: 0.55;
+}
+.attack-graphic--cctv-scene.attack-graphic--idle .cctv-scene-beam {
+  opacity: 0.55;
+}
+.attack-graphic--cctv-scene.attack-graphic--idle .cctv-scene-cam-chip {
+  opacity: 0.55;
+}
+
+/* preview 에서 chip/bbox fade-in */
+.attack-graphic--cctv-scene.attack-graphic--preview .cctv-scene-bbox,
+.attack-graphic--cctv-scene.attack-graphic--preview .cctv-scene-confidence,
+.attack-graphic--cctv-scene.attack-graphic--selected .cctv-scene-bbox,
+.attack-graphic--cctv-scene.attack-graphic--selected .cctv-scene-confidence,
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-bbox,
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-confidence {
+  animation: cctv-scene-fadein 220ms ease-out both;
+}
+
+@keyframes cctv-scene-fadein {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* beam grid drift (8s) — 가로로 천천히 흐름 */
+.attack-graphic--cctv-scene .cctv-scene-beam-grid {
+  animation: cctv-scene-grid-drift 8s linear infinite;
+}
+@keyframes cctv-scene-grid-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-40px); }
+}
+
+/* beam 내부 scan line — beam 영역을 좌→우 sweep */
+.attack-graphic--cctv-scene .cctv-scene-beam-scan {
+  transform-origin: 130px 200px;
+  animation: cctv-scene-beam-scan 4.2s linear infinite;
+  opacity: 0;
+}
+.attack-graphic--cctv-scene.attack-graphic--preview .cctv-scene-beam-scan,
+.attack-graphic--cctv-scene.attack-graphic--selected .cctv-scene-beam-scan,
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-beam-scan {
+  opacity: 1;
+}
+@keyframes cctv-scene-beam-scan {
+  0% { transform: translateX(-40px); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateX(300px); opacity: 0; }
+}
+
+/* beam 자체 미세 breathing — selected 이상에서 */
+.attack-graphic--cctv-scene.attack-graphic--selected .cctv-scene-beam,
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-beam {
+  transform-origin: 128px 92px;
+  animation: cctv-scene-beam-breathe 3.2s ease-in-out infinite;
+}
+@keyframes cctv-scene-beam-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.015); }
+}
+
+/* CAM 칩 안의 REC dot blink */
+.attack-graphic--cctv-scene .cctv-rec {
+  animation: cctv-scene-rec-blink 1.4s ease-in-out infinite;
+}
+.attack-graphic--cctv-scene .cctv-scene-rec-led {
+  animation: cctv-scene-rec-blink 1.4s ease-in-out infinite;
+}
+@keyframes cctv-scene-rec-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* bbox subtle tracking — selected 이상 */
+.attack-graphic--cctv-scene.attack-graphic--selected .cctv-scene-bbox,
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-bbox {
+  animation: cctv-scene-fadein 220ms ease-out both, cctv-scene-bbox-track 4s ease-in-out infinite 220ms;
+}
+@keyframes cctv-scene-bbox-track {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(2px, -1.5px); }
+}
+
+/* bbox altering shake — attackId === 'atk-altering' */
+.attack-graphic--cctv-scene .cctv-scene-bbox--altering {
+  animation: cctv-scene-bbox-shake 0.9s ease-in-out infinite !important;
+}
+@keyframes cctv-scene-bbox-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(-2px, 1px) rotate(-0.4deg); }
+  50% { transform: translate(2px, -1px) rotate(0.5deg); }
+  75% { transform: translate(-1px, 2px) rotate(-0.3deg); }
+}
+
+/* ground shadow 미세 pulse */
+.attack-graphic--cctv-scene .cctv-scene-ground {
+  animation: cctv-scene-ground-pulse 3.6s ease-in-out infinite;
+}
+@keyframes cctv-scene-ground-pulse {
+  0%, 100% { opacity: 0.22; }
+  50% { opacity: 0.32; }
+}
+
+/* hiding 상태: 객체 dim */
+.attack-graphic--cctv-scene .cctv-scene-subject--hiding {
+  animation: cctv-scene-subject-fade 1.4s ease-in-out infinite;
+}
+@keyframes cctv-scene-subject-fade {
+  0%, 100% { opacity: 0.18; }
+  50% { opacity: 0.32; }
+}
+
+/* HIDDEN strip pulse */
+.attack-graphic--cctv-scene .cctv-scene-hidden-strip {
+  animation: cctv-scene-hidden-pulse 1.2s ease-in-out infinite;
+  transform-origin: 340px 234px;
+}
+@keyframes cctv-scene-hidden-pulse {
+  0%, 100% { opacity: 0.92; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+/* adversarial patch flicker */
+.attack-graphic--cctv-scene .cctv-scene-patch {
+  transform-origin: 340px 232px;
+  animation: cctv-scene-patch-flicker 0.9s ease-in-out infinite;
+}
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-patch {
+  animation-duration: 0.55s;
+}
+@keyframes cctv-scene-patch-flicker {
+  0%, 100% { opacity: 0.78; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+/* ghost bbox (creating) — fade in/out */
+.attack-graphic--cctv-scene .cctv-scene-ghost {
+  animation: cctv-scene-ghost-appear 1.6s ease-in-out infinite;
+}
+@keyframes cctv-scene-ghost-appear {
+  0% { opacity: 0; transform: translateY(-4px); }
+  30%, 70% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+/* dataset chip mount transition */
+.attack-graphic--cctv-scene .cctv-scene-dataset-chip {
+  animation: cctv-scene-dataset-in 260ms ease-out both;
+  transform-origin: 484px 37px;
+}
+@keyframes cctv-scene-dataset-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* confidence dive (running 시 1.5s 시퀀스 → 0.12 hold) */
+.attack-graphic--cctv-scene .cctv-scene-conf-stage-1 { opacity: 1; }
+.attack-graphic--cctv-scene .cctv-scene-conf-stage-2,
+.attack-graphic--cctv-scene .cctv-scene-conf-stage-3 { opacity: 0; }
+
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-conf-stage-1 {
+  animation: cctv-scene-conf-stage1 1.5s ease forwards;
+}
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-conf-stage-2 {
+  animation: cctv-scene-conf-stage2 1.5s ease forwards;
+}
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-conf-stage-3 {
+  animation: cctv-scene-conf-stage3 1.5s ease forwards;
+}
+@keyframes cctv-scene-conf-stage1 {
+  0% { opacity: 1; }
+  32% { opacity: 1; }
+  33% { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes cctv-scene-conf-stage2 {
+  0% { opacity: 0; }
+  33% { opacity: 0; }
+  34% { opacity: 1; }
+  65% { opacity: 1; }
+  66% { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes cctv-scene-conf-stage3 {
+  0% { opacity: 0; }
+  66% { opacity: 0; }
+  67% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+/* altering label glitch (person ↔ tree) */
+.attack-graphic--cctv-scene .cctv-scene-conf-altering {
+  animation: cctv-scene-conf-altering-a 1.2s steps(2, end) infinite;
+}
+.attack-graphic--cctv-scene .cctv-scene-conf-altering-alt {
+  opacity: 0;
+  animation: cctv-scene-conf-altering-b 1.2s steps(2, end) infinite;
+}
+@keyframes cctv-scene-conf-altering-a {
+  0%, 60% { opacity: 1; }
+  61%, 100% { opacity: 0; }
+}
+@keyframes cctv-scene-conf-altering-b {
+  0%, 60% { opacity: 0; }
+  61%, 100% { opacity: 1; }
+}
+
+/* ATTACK INJECTED strip — running 시 좌→우 slide-in, 그 외엔 숨김 */
+.attack-graphic--cctv-scene .cctv-scene-injected {
+  opacity: 0;
+  transform: translateX(-220px);
+}
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-injected {
+  animation:
+    cctv-scene-injected-in 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    cctv-scene-injected-pulse 1.4s ease-in-out 420ms infinite;
+}
+@keyframes cctv-scene-injected-in {
+  from { opacity: 0; transform: translateX(-220px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes cctv-scene-injected-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+
+/* FPS / FRAME mini metric — selected 이상에서 표시 */
+.attack-graphic--cctv-scene .cctv-scene-metric {
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+.attack-graphic--cctv-scene.attack-graphic--selected .cctv-scene-metric,
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-metric {
+  opacity: 1;
+}
+.attack-graphic--cctv-scene .cctv-scene-tick {
+  animation: cctv-scene-tick 1s linear infinite;
+}
+@keyframes cctv-scene-tick {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* corner focus brackets — preview 이상에서 살짝 pulse */
+.attack-graphic--cctv-scene .cctv-scene-corner {
+  opacity: 0.4;
+  transition: opacity 220ms ease;
+}
+.attack-graphic--cctv-scene.attack-graphic--preview .cctv-scene-corner,
+.attack-graphic--cctv-scene.attack-graphic--selected .cctv-scene-corner,
+.attack-graphic--cctv-scene.attack-graphic--running .cctv-scene-corner {
+  opacity: 0.85;
+  animation: cctv-scene-corner-pulse 2.4s ease-in-out infinite;
+}
+@keyframes cctv-scene-corner-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0.55; }
+}
+
+/* preview state — saturate 보정 (공용 attack-graphic--preview 가 0.85 로 낮추는데,
+   isometric scene 은 채도 다운이 어울리지 않아 원복) */
+.attack-graphic--cctv-scene.attack-graphic--preview {
+  filter: none;
+  opacity: 1;
+}
+
+/* idle state — opacity 0.85 가 idle 인데, scene 톤상 너무 흐릿. 0.96 으로 */
+.attack-graphic--cctv-scene.attack-graphic--idle {
+  opacity: 0.96;
+}
+
+/* ===========================
+   CCTV Sora Motion Loop (정적 영상 루프 + React/SVG 오버레이)
+   =========================== */
+.attack-graphic--cctv-motion {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 24% 18%, rgba(45, 114, 210, 0.28), transparent 34%),
+    linear-gradient(135deg, #10161a 0%, #202b33 52%, #0f1519 100%);
+  box-shadow:
+    0 24px 70px rgba(16, 22, 26, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.cctv-motion-video-stack,
+.cctv-motion-video,
+.cctv-motion-vignette,
+.cctv-motion-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.cctv-motion-video-stack {
+  z-index: 0;
+  background: #10161a;
+}
+
+.cctv-motion-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  filter: saturate(0.92) contrast(1.05) brightness(0.86);
+  transition: opacity 360ms ease, transform 420ms ease;
+}
+
+.cctv-motion-video--active {
+  opacity: 1;
+  transform: scale(1);
+  animation: cctv-motion-video-in 360ms ease-out both;
+}
+
+.cctv-motion-video--previous {
+  opacity: 0;
+  animation: cctv-motion-video-out 420ms ease-out both;
+}
+
+@keyframes cctv-motion-video-in {
+  from { opacity: 0; transform: scale(1.012); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes cctv-motion-video-out {
+  from { opacity: 0.86; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.012); }
+}
+
+.cctv-motion-vignette {
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(16, 22, 26, 0.42) 0%, transparent 32%, rgba(16, 22, 26, 0.44) 100%),
+    radial-gradient(circle at center, transparent 44%, rgba(16, 22, 26, 0.42) 100%);
+}
+
+.cctv-motion-overlay {
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.cctv-motion-overlay text {
+  font-family: Consolas, Monaco, monospace;
+  fill: rgba(255, 255, 255, 0.94);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.cctv-motion-chip rect {
+  fill: rgba(16, 22, 26, 0.82);
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 1;
+}
+
+.cctv-motion-rec {
+  fill: #cd4246;
+  animation: cctv-motion-rec-blink 1.35s ease-in-out infinite;
+}
+
+@keyframes cctv-motion-rec-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.28; }
+}
+
+.cctv-motion-chip--dataset {
+  animation: cctv-motion-chip-in 260ms ease-out both;
+}
+
+@keyframes cctv-motion-chip-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cctv-motion-scan-cone {
+  opacity: 0.66;
+}
+
+.cctv-motion-scan-cone path:first-child {
+  fill: rgba(45, 114, 210, 0.13);
+  stroke: rgba(90, 160, 255, 0.2);
+  stroke-width: 1;
+}
+
+.cctv-motion-scan-line {
+  stroke: url(#cctv-motion-scan);
+  stroke-width: 52;
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0;
+  animation: cctv-motion-scan-sweep 4s linear infinite;
+}
+
+.attack-graphic--preview .cctv-motion-scan-line,
+.attack-graphic--selected .cctv-motion-scan-line,
+.attack-graphic--running .cctv-motion-scan-line {
+  opacity: 1;
+}
+
+@keyframes cctv-motion-scan-sweep {
+  0% { transform: translateX(-110px); opacity: 0; }
+  12% { opacity: 0.88; }
+  84% { opacity: 0.88; }
+  100% { transform: translateX(330px); opacity: 0; }
+}
+
+.cctv-motion-bbox path {
+  stroke: #0f9960;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.cctv-motion-bbox rect {
+  fill: rgba(15, 153, 96, 0.04);
+  stroke: rgba(15, 153, 96, 0.42);
+  stroke-width: 1;
+  stroke-dasharray: 4 5;
+}
+
+.attack-graphic--selected .cctv-motion-bbox,
+.attack-graphic--running .cctv-motion-bbox {
+  animation: cctv-motion-bbox-track 3.8s ease-in-out infinite;
+}
+
+@keyframes cctv-motion-bbox-track {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(3px, -2px); }
+}
+
+.cctv-motion-bbox--altering {
+  animation: cctv-motion-bbox-shake 0.82s ease-in-out infinite !important;
+}
+
+@keyframes cctv-motion-bbox-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(-3px, 2px) rotate(-0.5deg); }
+  50% { transform: translate(3px, -1px) rotate(0.6deg); }
+  75% { transform: translate(-2px, 3px) rotate(-0.4deg); }
+}
+
+.cctv-motion-confidence rect {
+  fill: rgba(15, 153, 96, 0.95);
+}
+
+.cctv-motion-confidence-stage-2,
+.cctv-motion-confidence-stage-3,
+.cctv-motion-confidence-alt {
+  opacity: 0;
+}
+
+.attack-graphic--running .cctv-motion-confidence-stage-1 {
+  animation: cctv-motion-confidence-stage-1 1.5s ease forwards;
+}
+
+.attack-graphic--running .cctv-motion-confidence-stage-2 {
+  animation: cctv-motion-confidence-stage-2 1.5s ease forwards;
+}
+
+.attack-graphic--running .cctv-motion-confidence-stage-3 {
+  animation: cctv-motion-confidence-stage-3 1.5s ease forwards;
+}
+
+@keyframes cctv-motion-confidence-stage-1 {
+  0%, 32% { opacity: 1; }
+  33%, 100% { opacity: 0; }
+}
+
+@keyframes cctv-motion-confidence-stage-2 {
+  0%, 33% { opacity: 0; }
+  34%, 65% { opacity: 1; }
+  66%, 100% { opacity: 0; }
+}
+
+@keyframes cctv-motion-confidence-stage-3 {
+  0%, 66% { opacity: 0; }
+  67%, 100% { opacity: 1; }
+}
+
+.cctv-motion-confidence--altering {
+  animation: cctv-motion-label-a 1.15s steps(2, end) infinite;
+}
+
+.cctv-motion-confidence-alt {
+  animation: cctv-motion-label-b 1.15s steps(2, end) infinite;
+}
+
+@keyframes cctv-motion-label-a {
+  0%, 60% { opacity: 1; }
+  61%, 100% { opacity: 0; }
+}
+
+@keyframes cctv-motion-label-b {
+  0%, 60% { opacity: 0; }
+  61%, 100% { opacity: 1; }
+}
+
+.cctv-motion-patch {
+  transform-origin: 337px 227px;
+  animation: cctv-motion-patch-flicker 0.88s ease-in-out infinite;
+}
+
+.cctv-motion-patch rect {
+  fill: url(#cctv-motion-patch);
+  stroke: #cd4246;
+  stroke-width: 1.6;
+}
+
+.cctv-motion-patch text {
+  fill: #ff7376;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+.attack-graphic--running .cctv-motion-patch {
+  animation-duration: 0.52s;
+}
+
+@keyframes cctv-motion-patch-flicker {
+  0%, 100% { opacity: 0.82; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.cctv-motion-hidden {
+  animation: cctv-motion-hidden-pulse 1.15s ease-in-out infinite;
+  transform-origin: 319px 214px;
+}
+
+.cctv-motion-hidden rect {
+  fill: rgba(205, 66, 70, 0.94);
+}
+
+.cctv-motion-hidden text {
+  font-size: 14px;
+  letter-spacing: 0.2em;
+}
+
+@keyframes cctv-motion-hidden-pulse {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.035); }
+}
+
+.cctv-motion-ghost {
+  animation: cctv-motion-ghost-appear 1.55s ease-in-out infinite;
+}
+
+.cctv-motion-ghost path {
+  stroke: #ff6b6f;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.cctv-motion-ghost rect:not(.cctv-motion-ghost-label) {
+  fill: rgba(205, 66, 70, 0.06);
+  stroke: rgba(255, 107, 111, 0.46);
+  stroke-dasharray: 4 5;
+}
+
+.cctv-motion-ghost-label {
+  fill: rgba(205, 66, 70, 0.94);
+}
+
+.cctv-motion-ghost-text {
+  font-size: 10.5px;
+}
+
+@keyframes cctv-motion-ghost-appear {
+  0% { opacity: 0; transform: translateY(-6px); }
+  28%, 72% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+.cctv-motion-injected {
+  opacity: 0;
+  transform: translateX(-220px);
+}
+
+.cctv-motion-injected.is-visible {
+  animation:
+    cctv-motion-injected-in 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    cctv-motion-injected-pulse 1.35s ease-in-out 420ms infinite;
+}
+
+.cctv-motion-injected rect {
+  fill: #cd4246;
+}
+
+.cctv-motion-injected circle {
+  fill: #ffffff;
+}
+
+.cctv-motion-injected text {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+}
+
+@keyframes cctv-motion-injected-in {
+  from { opacity: 0; transform: translateX(-220px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes cctv-motion-injected-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+
+.cctv-motion-metric {
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.cctv-motion-metric.is-visible {
+  opacity: 1;
+}
+
+.cctv-motion-metric text {
+  fill: rgba(255, 255, 255, 0.72);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.cctv-motion-metric circle {
+  fill: #0f9960;
+  animation: cctv-motion-rec-blink 1s linear infinite;
+}
+
+.cctv-motion-corners {
+  stroke: rgba(90, 160, 255, 0.64);
+  stroke-width: 1.4;
+  fill: none;
+  opacity: 0.58;
+  animation: cctv-motion-corner-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes cctv-motion-corner-pulse {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 0.42; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cctv-motion-video,
+  .cctv-motion-scan-line,
+  .cctv-motion-bbox,
+  .cctv-motion-patch,
+  .cctv-motion-hidden,
+  .cctv-motion-ghost,
+  .cctv-motion-injected,
+  .cctv-motion-corners {
+    animation: none !important;
+  }
 }

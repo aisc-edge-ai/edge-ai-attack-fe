@@ -4,12 +4,16 @@ import { useModels } from '@/hooks/useModels';
 import { Icon, Tag, type IconName } from '@blueprintjs/core';
 import { cn } from '@/lib/utils';
 import { isModelTypeSupported } from '@/lib/constants';
+import type { ModelType } from '@/types';
+
+const IMAGE_CLASSIFICATION_TYPES: ModelType[] = ['classification', 'imagenet'];
 
 const MODEL_ICONS: Record<string, string> = {
   cctv: 'camera',
   voice: 'headset',
   autonomous: 'drive-time',
   classification: 'predictive-analysis',
+  imagenet: 'predictive-analysis',
 };
 
 /**
@@ -24,7 +28,11 @@ export function StepModelSelect() {
 
   const models = useMemo(
     () =>
-      (allModels ?? []).filter((m) => m.modelType === selectedModelType),
+      (allModels ?? []).filter((m) =>
+        selectedModelType && IMAGE_CLASSIFICATION_TYPES.includes(selectedModelType)
+          ? IMAGE_CLASSIFICATION_TYPES.includes(m.modelType)
+          : m.modelType === selectedModelType,
+      ),
     [allModels, selectedModelType],
   );
 

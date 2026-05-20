@@ -4,6 +4,7 @@ import { Button, Menu, MenuItem, Navbar, NavbarGroup, NavbarHeading, Alignment, 
 import { useAuth } from '@/hooks/useAuth';
 import { useAttackJobStore, isJobRunning } from '@/stores/attackJobStore';
 import { ROUTE_TITLES } from '@/lib/constants';
+import { stripAppBasename } from '@/lib/publicPath';
 import { cn } from '@/lib/utils';
 import { AttackProgressWatcher } from '@/components/shared/AttackProgressWatcher';
 import { AttackProgressDock } from '@/components/shared/AttackProgressDock';
@@ -19,14 +20,15 @@ export function DashboardLayout() {
   const { logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const basePath = '/' + location.pathname.split('/')[1];
+  const appPathname = stripAppBasename(location.pathname);
+  const basePath = '/' + appPathname.split('/')[1];
   const pageTitle = ROUTE_TITLES[basePath] || '';
   const [collapsed, setCollapsed] = useState(false);
   const jobStatus = useAttackJobStore((s) => s.activeJob?.status);
   const attackInProgress = isJobRunning(jobStatus);
 
   const activeNav = navItems.find(item => basePath === item.to) ||
-    (location.pathname.startsWith('/results') ? navItems.find(item => item.to === '/results') : null);
+    (appPathname.startsWith('/results') ? navItems.find(item => item.to === '/results') : null);
 
   return (
     <div className="app-layout">
@@ -48,7 +50,7 @@ export function DashboardLayout() {
             {navItems.map((item) => {
               const isActive =
                 basePath === item.to ||
-                (item.to === '/results' && location.pathname.startsWith('/results'));
+                (item.to === '/results' && appPathname.startsWith('/results'));
               const showRunningDot = item.to === '/attack' && attackInProgress;
 
               return (

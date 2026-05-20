@@ -1,8 +1,4 @@
 import type {
-  AttackCategory,
-  Dataset,
-  Model,
-  AttackResult,
   DashboardSummary,
   DeviceStatus,
   RecentLog,
@@ -10,124 +6,6 @@ import type {
   ModelVulnerabilityScore,
   RiskDistribution,
 } from '@/types';
-
-// ============================================================================
-// 딥보이스 mock — mock-providers.ts 의 registry 에서 사용.
-// 백엔드 미연결 영역만 mock 으로 표시. 미래 신규 모델 추가는 mock-providers.ts
-// 에 entry 만 추가하면 됨.
-// ============================================================================
-
-export const MOCK_VOICE_MODELS: Model[] = [
-  {
-    id: 'MDL-007',
-    name: 'Resemblyzer',
-    type: '음성 인식 (화자 인증)',
-    modelType: 'voice',
-    framework: 'PyTorch',
-    node: 'Voice Hub',
-    status: 'active',
-    registeredAt: '2026-04-17',
-  },
-  {
-    id: 'MDL-008',
-    name: 'ECAPA-TDNN',
-    type: '음성 인식 (화자 인증)',
-    modelType: 'voice',
-    framework: 'PyTorch',
-    node: 'Voice Hub',
-    status: 'active',
-    registeredAt: '2026-04-17',
-  },
-];
-
-export const MOCK_VOICE_CATEGORY: AttackCategory = {
-  id: 'cat-voice',
-  name: '음성 인식 인증 우회 공격 (딥보이스)',
-  children: [
-    { id: 'atk-rtvc', name: 'RTVC (Real-Time Voice Cloning)', categoryId: 'cat-voice' },
-    { id: 'atk-tortoise', name: 'Tortoise-TTS', categoryId: 'cat-voice' },
-    { id: 'atk-yourtts', name: 'YourTTS', categoryId: 'cat-voice' },
-    { id: 'atk-avc', name: 'AVC (Adversarial Voice Cloning)', categoryId: 'cat-voice' },
-  ],
-};
-
-export const MOCK_VOICE_DATASETS: Dataset[] = [
-  { id: 'DS-V01', name: 'VCTK', type: '음성 코퍼스 (다화자)', datasetType: 'audio_noise', size: '11.2 GB', usage: 24, createdAt: '2026-04-17', category: 'voice' },
-  { id: 'DS-V02', name: 'MCV (Mozilla Common Voice)', type: '음성 코퍼스 (크라우드)', datasetType: 'audio_noise', size: '76.4 GB', usage: 18, createdAt: '2026-04-17', category: 'voice' },
-  { id: 'DS-V03', name: 'LibriSpeech_Selected', type: '음성 코퍼스 (오디오북)', datasetType: 'audio_noise', size: '6.8 GB', usage: 32, createdAt: '2026-04-17', category: 'voice' },
-  { id: 'DS-V04', name: 'CSNED', type: '한국어 음성 데이터셋', datasetType: 'audio_noise', size: '4.5 GB', usage: 11, createdAt: '2026-04-17', category: 'voice' },
-  { id: 'DS-V05', name: 'CSUKIED', type: '한영 다국어 음성', datasetType: 'audio_noise', size: '5.1 GB', usage: 7, createdAt: '2026-04-17', category: 'voice' },
-  { id: 'DS-V06', name: 'FST', type: '합성 음성 평가셋', datasetType: 'audio_noise', size: '2.3 GB', usage: 15, createdAt: '2026-04-17', category: 'voice' },
-];
-
-export const MOCK_VOICE_RESULTS_LIST: AttackResult[] = [
-  {
-    id: 'LOG-20260417-010',
-    date: '2026-04-17 11:05',
-    model: 'Resemblyzer',
-    modelType: '음성 인식 (화자 인증)',
-    attack: 'RTVC',
-    successRate: '64.20%',
-    beforeAccuracy: '94.1%',
-    afterAccuracy: '29.9%',
-    risk: 'vulnerable',
-    beforeAP: '0.941',
-    afterAP: '0.299',
-    beforeAR: '0.945',
-    afterAR: '0.310',
-    attackSuccessRate: '64.20%',
-    confThreshold: 0.5,
-    dataset: 'VCTK + LibriSpeech_Selected',
-    detail: {
-      metrics: {
-        clean: { EER: 0.041, accuracy: 0.941 },
-        patched: { EER: 0.331, accuracy: 0.299 },
-        noise_baseline: { EER: 0.052, accuracy: 0.928 },
-      },
-      visualEvidence: {
-        sampleImages: [],
-        audioSamples: [
-          { label: '원본 음성 (정상 화자)' },
-          { label: '타겟 화자 샘플' },
-          { label: '공격 음성 (RTVC 합성)' },
-        ],
-      },
-    },
-  },
-  {
-    id: 'LOG-20260417-011',
-    date: '2026-04-17 13:42',
-    model: 'ECAPA-TDNN',
-    modelType: '음성 인식 (화자 인증)',
-    attack: 'YourTTS',
-    successRate: '48.85%',
-    beforeAccuracy: '97.6%',
-    afterAccuracy: '49.9%',
-    risk: 'warning',
-    beforeAP: '0.976',
-    afterAP: '0.499',
-    beforeAR: '0.978',
-    afterAR: '0.512',
-    attackSuccessRate: '48.85%',
-    confThreshold: 0.5,
-    dataset: 'MCV + CSNED',
-    detail: {
-      metrics: {
-        clean: { EER: 0.024, accuracy: 0.976 },
-        patched: { EER: 0.249, accuracy: 0.499 },
-        noise_baseline: { EER: 0.030, accuracy: 0.965 },
-      },
-      visualEvidence: {
-        sampleImages: [],
-        audioSamples: [
-          { label: '원본 음성 (정상 화자)' },
-          { label: '타겟 화자 샘플' },
-          { label: '공격 음성 (YourTTS 합성)' },
-        ],
-      },
-    },
-  },
-];
 
 // ============================================================================
 // 대시보드 mock fallback — src/api/dashboard.ts 의 withMockFallback 이 사용.
@@ -198,3 +76,116 @@ export const MOCK_RISK_DISTRIBUTION: RiskDistribution = {
   warning: 3,
   safe: 8,
 };
+
+// ============================================================================
+// 프리셋 mock — src/stores/presetStore.ts 초기 시드 + 다이얼로그 선택지
+// ============================================================================
+
+import type { Preset } from '@/types/preset';
+
+export const MOCK_MODELS_FOR_PRESETS: Array<{ id: string; name: string; modelType: string }> = [
+  { id: 'yolov5l6', name: 'YOLOv5-L6', modelType: 'cctv' },
+  { id: 'yolov8', name: 'YOLOv8', modelType: 'cctv' },
+  { id: 'faster-rcnn', name: 'Faster R-CNN', modelType: 'cctv' },
+  { id: 'whisper-v1', name: 'Whisper', modelType: 'voice' },
+  { id: 'conformer-v1', name: 'Conformer', modelType: 'voice' },
+  { id: 'resnet50', name: 'ResNet50', modelType: 'classification' },
+  { id: 'mobilenet', name: 'MobileNet', modelType: 'classification' },
+  { id: 'efficientdet', name: 'EfficientDet', modelType: 'classification' },
+];
+
+export const MOCK_DATASETS_FOR_PRESETS: Array<{ id: string; name: string; category: string }> = [
+  { id: 'ds-img-001', name: 'cctv_patch_v1.zip', category: 'image' },
+  { id: 'ds-img-002', name: 'cctv_alter_v2.zip', category: 'image' },
+  { id: 'ds-img-003', name: 'cctv_create_v1.zip', category: 'image' },
+  { id: 'ds-audio-001', name: 'voice_samples_ko.zip', category: 'voice' },
+  { id: 'ds-audio-002', name: 'voice_eval_en.zip', category: 'voice' },
+  { id: 'ds-tensor-001', name: 'noise_tensor_v1.pt', category: 'tensor' },
+];
+
+export const MOCK_PRESETS: Preset[] = [
+  {
+    id: 'preset-001',
+    name: 'CCTV Patch Hiding',
+    description: 'YOLOv5 모델에 대한 Patch Hiding 공격 프리셋. 보안 카메라 탐지 우회 시나리오.',
+    modelType: 'cctv',
+    modelId: 'yolov5l6',
+    modelName: 'YOLOv5-L6',
+    attackTypeIds: ['atk-hiding'],
+    dataSource: 'load',
+    datasetIds: ['ds-img-001'],
+    datasetNames: ['cctv_patch_v1.zip'],
+    createdAt: '2026-04-10T09:00:00Z',
+    updatedAt: '2026-05-01T14:30:00Z',
+  },
+  {
+    id: 'preset-002',
+    name: 'CCTV Patch Altering',
+    description: 'YOLOv5 대상 Patch Altering 공격. 탐지 결과를 변조하는 시나리오.',
+    modelType: 'cctv',
+    modelId: 'yolov5l6',
+    modelName: 'YOLOv5-L6',
+    attackTypeIds: ['atk-altering'],
+    dataSource: 'load',
+    datasetIds: ['ds-img-002'],
+    datasetNames: ['cctv_alter_v2.zip'],
+    createdAt: '2026-04-12T11:00:00Z',
+    updatedAt: '2026-04-28T09:15:00Z',
+  },
+  {
+    id: 'preset-003',
+    name: 'Voice DeepVoice 합성',
+    description: 'RTVC 기반 음성 합성 공격. 화자 인증 우회 시나리오.',
+    modelType: 'voice',
+    modelId: 'whisper-v1',
+    modelName: 'Whisper',
+    attackTypeIds: ['atk-rtvc'],
+    dataSource: 'load',
+    datasetIds: ['ds-audio-001'],
+    datasetNames: ['voice_samples_ko.zip'],
+    createdAt: '2026-04-15T13:00:00Z',
+    updatedAt: '2026-05-05T16:00:00Z',
+  },
+  {
+    id: 'preset-004',
+    name: 'Classification MTC',
+    description: 'Model Type Classification 공격. 모델 구조 추론 시나리오.',
+    modelType: 'classification',
+    modelId: 'resnet50',
+    modelName: 'ResNet50',
+    attackTypeIds: ['atk-mtc'],
+    dataSource: 'generate',
+    datasetIds: [],
+    datasetNames: [],
+    createdAt: '2026-04-20T10:00:00Z',
+    updatedAt: '2026-04-20T10:00:00Z',
+  },
+  {
+    id: 'preset-005',
+    name: 'CCTV 다중 공격 통합',
+    description: 'Hiding + Altering + Creating 3종 동시 공격. 종합 취약성 평가용.',
+    modelType: 'cctv',
+    modelId: 'yolov5l6',
+    modelName: 'YOLOv5-L6',
+    attackTypeIds: ['atk-hiding', 'atk-altering', 'atk-creating'],
+    dataSource: 'load',
+    datasetIds: ['ds-img-001', 'ds-img-003'],
+    datasetNames: ['cctv_patch_v1.zip', 'cctv_create_v1.zip'],
+    createdAt: '2026-05-01T08:00:00Z',
+    updatedAt: '2026-05-10T11:45:00Z',
+  },
+  {
+    id: 'preset-006',
+    name: 'AVC 음성 변환 공격',
+    description: 'Adversarial Voice Conversion 공격. 음성 인식 시스템 강건성 검증.',
+    modelType: 'voice',
+    modelId: 'whisper-v1',
+    modelName: 'Whisper',
+    attackTypeIds: ['atk-avc'],
+    dataSource: 'generate',
+    datasetIds: [],
+    datasetNames: [],
+    createdAt: '2026-05-08T14:00:00Z',
+    updatedAt: '2026-05-12T10:20:00Z',
+  },
+];

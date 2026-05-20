@@ -5,12 +5,6 @@ import type {
   AttackCategory,
   ModelType,
 } from '@/types';
-import {
-  MOCK_VOICE_MODELS,
-  MOCK_VOICE_CATEGORY,
-  MOCK_VOICE_DATASETS,
-  MOCK_VOICE_RESULTS_LIST,
-} from './mock-data';
 
 /**
  * Mock provider registry — 백엔드 미연결 모델/공격 흐름을 frontend mock 으로 서빙하는 통합 정의.
@@ -43,16 +37,6 @@ export interface MockProvider {
 }
 
 export const MOCK_PROVIDERS: MockProvider[] = [
-  {
-    id: 'deepvoice',
-    label: '딥보이스 (음성 인증 우회)',
-    modelType: 'voice',
-    attackIds: ['atk-rtvc', 'atk-tortoise', 'atk-yourtts', 'atk-avc'],
-    models: MOCK_VOICE_MODELS,
-    category: MOCK_VOICE_CATEGORY,
-    datasets: MOCK_VOICE_DATASETS,
-    results: MOCK_VOICE_RESULTS_LIST,
-  },
   // 미래 추가 예시:
   // {
   //   id: 'lidar',

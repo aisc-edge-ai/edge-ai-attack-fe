@@ -16,9 +16,14 @@ export interface AttackResult {
   beforeAR?: string;             // 소수점 문자열, e.g., "0.997"
   afterAR?: string;              // 소수점 문자열, e.g., "0.561"
   attackSuccessRate?: string;    // 백분율 문자열, e.g., "100%"
-  confThreshold?: number;        // e.g., 0.4
+  confThreshold?: number;        // e.g., 0.4 (객체 탐지) / 0.22 ECAPA, 0.69 Resemblyzer (음성)
   averageCIoU?: number;          // e.g., 0.308
   dataset?: string;              // 테스트에 사용된 데이터셋명, e.g., "demo_hiding_test"
+  /**
+   * DeepVoice 전용 — 어떤 검증 모델로 측정됐는지 식별.
+   * 백엔드 buildDeepvoiceResults 가 verifier 별로 2개 결과를 분리 생성하면서 채움.
+   */
+  verifier?: 'ECAPA-TDNN' | 'Resemblyzer';
   /**
    * Model Type Inference (MTC) 전용 — 3가지 방법의 best validation accuracy (0~100 정수).
    * Baseline = softmax probability only, Blackbox = +feature1, Graybox = +feature1+feature2.
@@ -57,6 +62,12 @@ export interface AttackResult {
       rocCurveComparison?: string;
       /** MTC 전용 — 방법별 validation accuracy 학습곡선 이미지 URL */
       valAccuracyComparison?: string;
+      /** DeepVoice 전용 — 원본 음성 mel-spectrogram */
+      spectrogramOriginal?: string;
+      /** DeepVoice 전용 — 합성 음성 mel-spectrogram */
+      spectrogramSynth?: string;
+      /** DeepVoice 전용 — 공격 모델별 t-SNE speaker embedding 클러스터 */
+      tsneClusterImage?: string;
     };
   };
 }
