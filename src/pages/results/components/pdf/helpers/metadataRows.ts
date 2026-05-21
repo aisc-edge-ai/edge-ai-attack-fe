@@ -1,5 +1,6 @@
 import type { AttackResult } from '@/types';
 import { isImagenetResult } from './isImagenetResult';
+import { isInversionResult } from './isInversionResult';
 import { isMtcResult } from './isMtcResult';
 import { isVoiceResult } from './isVoiceResult';
 
@@ -48,6 +49,18 @@ export function buildMetadataRows(result: AttackResult): MetadataRow[] {
       ['Epsilon (ε)', String(patched.Linf ?? 0.03)],
       ['샘플 수', String(patched.n ?? 1000)],
       ['데이터 출처', 'results_raw/summary.csv'],
+    ];
+  }
+
+  if (isInversionResult(result)) {
+    const runId = result.rawResultsUrl?.match(/results_raw\/([^/]+)/)?.[1] ?? '<runId>';
+    return [
+      ['타겟 모델', result.model],
+      ['모델 유형', result.modelType],
+      ['공격 기법', result.attack],
+      ['데이터셋', result.dataset ?? '-'],
+      ['방어 모드', result.attack.includes('TrapMI') ? 'TrapMI (방어 적용)' : 'None (방어 없음)'],
+      ['데이터 출처', `results_raw/${runId}/evaluation_metrics.json`],
     ];
   }
 

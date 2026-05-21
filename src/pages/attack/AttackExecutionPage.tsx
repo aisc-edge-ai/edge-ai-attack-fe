@@ -93,7 +93,8 @@ export function AttackExecutionPage() {
         intent: Intent.SUCCESS,
         icon: 'play',
       });
-    } catch {
+    } catch (err) {
+      console.warn('[attack-execute]', err);
       const toaster = await AppToaster;
       toaster.show({ message: '공격 실행에 실패했습니다.', intent: Intent.DANGER, icon: 'error' });
     }

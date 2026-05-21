@@ -329,6 +329,11 @@
   padding: 4px 12px 16px;
   flex: 1;
   min-width: 0;
+  /* flex column 으로 두면 토글 row 가 margin-top:auto 로 body 하단에 정렬 → 두 패널의
+     토글이 grid stretch 덕에 같은 세로 좌표로 일치 (AccuracyDropChart 의 legend 가
+     토글을 아래로 밀어내는 차이 보정). */
+  display: flex;
+  flex-direction: column;
 }
 
 .properties-chart-empty {
@@ -414,7 +419,7 @@
   justify-content: center;
   align-items: center;
   gap: 24px;
-  padding: 4px 0 0;
+  padding: 0 0 6px;     /* 차트 위에 배치 — 아래쪽으로만 spacing */
   font-size: 11px;
   color: var(--bp-text-secondary);
 }
@@ -766,6 +771,38 @@
   }
 }
 
+/* TrapMI Model Inversion — 4 카드 grid (정상 분류 / 복원 SSIM / 복원 MSE / 오분류 CE) */
+.analysis-prominent-metrics--inversion {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.analysis-prominent-metrics--inversion .prominent-item {
+  padding: 20px 24px;
+}
+
+.analysis-prominent-metrics--inversion .prominent-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--bp-text-primary);
+  white-space: normal;
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 1100px) {
+  .analysis-prominent-metrics--inversion {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .analysis-prominent-metrics--inversion {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Legacy KPI grid (used elsewhere) */
 .kpi-grid {
   display: grid;
@@ -954,4 +991,40 @@
   line-height: 1.7;
   color: var(--bp-text-secondary);
   margin: 0;
+}
+
+/* Properties 차트 토글 — 그래프 위주의 시선 흐름을 위해 아이콘 only / muted 색상 */
+.properties-chart-toggle-row {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 2px;
+  /* 부모 body 가 flex column 일 때 토글을 body 하단으로 밀어내는 trick.
+     두 chart panel 의 height 가 grid stretch 로 동일 → 두 토글이 같은 세로 좌표 */
+  margin-top: auto;
+}
+
+.properties-chart-toggle {
+  background: none;
+  border: none;
+  padding: 4px 10px;
+  cursor: pointer;
+  color: var(--bp-text-muted);
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+.properties-chart-toggle:hover {
+  color: var(--bp-text-secondary);
+}
+
+.properties-chart-toggle:focus-visible {
+  outline: 1px solid var(--bp-border);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Blueprint <Icon> 의 SVG fill 이 부모의 color 를 상속받도록 */
+.properties-chart-toggle .bp6-icon {
+  color: inherit;
 }

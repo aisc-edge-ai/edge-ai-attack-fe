@@ -9,6 +9,7 @@ import { RISK_LABELS, getGradeCriteria, getRecommendations } from '@/lib/risk-co
 import { AppToaster } from '@/lib/toaster';
 import { ProminentMetrics } from './ProminentMetrics';
 import { isImagenetResult } from './pdf/helpers/isImagenetResult';
+import { isInversionResult } from './pdf/helpers/isInversionResult';
 import type { AttackResult } from '@/types';
 
 interface ResultAnalysisTabProps {
@@ -46,7 +47,7 @@ export function ResultAnalysisTab({
         intent: Intent.DANGER,
         icon: 'error',
       });
-      void err;
+      console.warn('[pdf]', err);
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -87,8 +88,10 @@ export function ResultAnalysisTab({
   const isMtc = !!selectedResult.inferenceAccuracy;
   const isVoice = !!selectedResult.verifier;
   const isImagenet = isImagenetResult(selectedResult);
+  const isInversion = isInversionResult(selectedResult);
   const patched = selectedResult.detail?.metrics?.patched ?? {};
-  // README v2: 결과 CSV 는 per-run path. rawResultsUrl 에서 runId 추출.
+  // 결과 CSV / JSON 의 per-run path 표시용 — rawResultsUrl 에서 runId 추출.
+  // voice (deepvoice) 와 inversion (trapmi) 양쪽이 공통으로 사용.
   const voiceRunId =
     selectedResult.rawResultsUrl?.match(/results_raw\/([^/]+)/)?.[1] ?? '<runId>';
 
@@ -243,7 +246,27 @@ export function ResultAnalysisTab({
                     </tr>
                   </>
                 )}
-                {!isMtc && !isVoice && !isImagenet && (
+                {isInversion && (
+                  <>
+                    <tr>
+                      <td className="analysis-meta-key">데이터셋</td>
+                      <td className="analysis-meta-value">{selectedResult.dataset ?? '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">방어 모드</td>
+                      <td className="analysis-meta-value">
+                        {selectedResult.attack.includes('TrapMI') ? 'TrapMI (방어 적용)' : 'None (방어 없음)'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="analysis-meta-key">데이터 출처</td>
+                      <td className="analysis-meta-value">
+                        results_raw/{voiceRunId}/evaluation_metrics.json
+                      </td>
+                    </tr>
+                  </>
+                )}
+                {!isMtc && !isVoice && !isImagenet && !isInversion && (
                   <>
                     <tr>
                       <td className="analysis-meta-key">Conf Threshold</td>
