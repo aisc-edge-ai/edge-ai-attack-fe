@@ -1,0 +1,2 @@
+export const STALE_TIME_DEFAULT = 5 * 60 * 1000;
+export const DASHBOARD_REFETCH_INTERVAL = 30_000;

@@ -1,8 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Intent } from '@blueprintjs/core';
+import { useQuery } from '@tanstack/react-query';
 import { presetsApi } from '@/api/presets';
-import { getErrorMessage } from '@/api/client';
-import { AppToaster } from '@/lib/toaster';
+import { useMutationWithToast } from './use-mutation-with-toast';
+import { MESSAGES } from '@/lib/messages';
 import type { PresetFormValues } from '@/types';
 
 export function usePresets() {
@@ -13,68 +12,22 @@ export function usePresets() {
 }
 
 export function useCreatePreset() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (values: PresetFormValues) => presetsApi.createPreset(values),
-    onSuccess: async () => {
-      qc.invalidateQueries({ queryKey: ['presets'] });
-      (await AppToaster).show({
-        message: '프리셋이 생성되었습니다.',
-        intent: Intent.SUCCESS,
-        icon: 'tick',
-      });
-    },
-    onError: async (error) => {
-      (await AppToaster).show({
-        message: getErrorMessage(error, '프리셋 생성에 실패했습니다.'),
-        intent: Intent.DANGER,
-        icon: 'error',
-      });
-    },
-  });
+  return useMutationWithToast(
+    (values: PresetFormValues) => presetsApi.createPreset(values),
+    { successMessage: MESSAGES.PRESET_CREATED, errorFallback: MESSAGES.PRESET_CREATE_FAIL, invalidateKeys: [['presets']] },
+  );
 }
 
 export function useUpdatePreset() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, values }: { id: string; values: PresetFormValues }) =>
-      presetsApi.updatePreset(id, values),
-    onSuccess: async () => {
-      qc.invalidateQueries({ queryKey: ['presets'] });
-      (await AppToaster).show({
-        message: '프리셋이 수정되었습니다.',
-        intent: Intent.SUCCESS,
-        icon: 'tick',
-      });
-    },
-    onError: async (error) => {
-      (await AppToaster).show({
-        message: getErrorMessage(error, '프리셋 수정에 실패했습니다.'),
-        intent: Intent.DANGER,
-        icon: 'error',
-      });
-    },
-  });
+  return useMutationWithToast(
+    ({ id, values }: { id: string; values: PresetFormValues }) => presetsApi.updatePreset(id, values),
+    { successMessage: MESSAGES.PRESET_UPDATED, errorFallback: MESSAGES.PRESET_UPDATE_FAIL, invalidateKeys: [['presets']] },
+  );
 }
 
 export function useDeletePreset() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => presetsApi.deletePreset(id),
-    onSuccess: async () => {
-      qc.invalidateQueries({ queryKey: ['presets'] });
-      (await AppToaster).show({
-        message: '프리셋이 삭제되었습니다.',
-        intent: Intent.SUCCESS,
-        icon: 'tick',
-      });
-    },
-    onError: async (error) => {
-      (await AppToaster).show({
-        message: getErrorMessage(error, '프리셋 삭제에 실패했습니다.'),
-        intent: Intent.DANGER,
-        icon: 'error',
-      });
-    },
-  });
+  return useMutationWithToast(
+    (id: string) => presetsApi.deletePreset(id),
+    { successMessage: MESSAGES.PRESET_DELETED, errorFallback: MESSAGES.PRESET_DELETE_FAIL, invalidateKeys: [['presets']] },
+  );
 }
