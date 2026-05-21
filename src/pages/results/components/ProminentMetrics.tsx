@@ -1,5 +1,6 @@
 import type { AttackResult } from '@/types';
 import { isImagenetResult } from './pdf/helpers/isImagenetResult';
+import { isInversionResult } from './pdf/helpers/isInversionResult';
 
 interface ProminentMetricsProps {
   result: AttackResult;
@@ -10,6 +11,8 @@ interface ProminentMetricsProps {
  *
  * - DeepVoice (`verifier` 존재) → 원본 인식률 / 공격 인식률 / 공격 성공 개수 3카드
  * - MTC (`inferenceAccuracy` 존재) → Baseline / Blackbox / Graybox 정확도 3카드
+ * - ImageNet (Contour) → ASR / L0 / L2 / SSIM / n 5카드
+ * - TrapMI Inversion (modelType `'모델 역추출 공격'`) → 정상 분류 정확도 / 복원 SSIM / 복원 MSE / 오분류 CE 4카드
  * - 그 외 (기존 객체 탐지) → Before/After AP, Before/After AR, AP Drop, Attack Success 6칸
  *
  * 새 metric 세트 추가 시 이 컴포넌트 안에서 분기 추가. ResultAnalysisTab 손 안 댐.
@@ -23,6 +26,9 @@ export function ProminentMetrics({ result }: ProminentMetricsProps) {
   }
   if (isImagenetResult(result)) {
     return <ImageNetMetricCards result={result} />;
+  }
+  if (isInversionResult(result)) {
+    return <InversionMetricCards result={result} />;
   }
   return <DetectionMetricStrip result={result} />;
 }
@@ -125,6 +131,50 @@ function DetectionMetricStrip({ result }: { result: AttackResult }) {
       <div className="prominent-item">
         <div className="prominent-label">Attack Success</div>
         <div className="prominent-value danger">{result.attackSuccessRate ?? result.successRate}</div>
+      </div>
+    </div>
+  );
+}
+
+function InversionMetricCards({ result }: { result: AttackResult }) {
+  // 백엔드 trapmi parser 가 detail.metrics 에 채움 (TRAPMI_API.md §3.7).
+  // clean.victim_accuracy = 정상 입력에 대한 victim 분류 정확도 (0~1)
+  // patched.reconstruction_ssim = 원본 ↔ 복원 SSIM (0~1, 높을수록 공격 성공)
+  // patched.reconstruction_mse = 원본 ↔ 복원 MSE 평균 (낮을수록 복원 정확)
+  // patched.attack_ce_on_reconstruction = 복원 이미지의 CE Loss (높을수록 방어 효과)
+  const clean = result.detail?.metrics?.clean ?? {};
+  const patched = result.detail?.metrics?.patched ?? {};
+
+  const victimAccPct =
+    typeof clean.victim_accuracy === 'number' ? `${(clean.victim_accuracy * 100).toFixed(1)}%` : '-';
+  const ssimPct =
+    typeof patched.reconstruction_ssim === 'number'
+      ? `${(patched.reconstruction_ssim * 100).toFixed(2)}%`
+      : (result.attackSuccessRate ?? result.successRate);
+  const mseLabel =
+    typeof patched.reconstruction_mse === 'number' ? patched.reconstruction_mse.toFixed(4) : '-';
+  const ceLabel =
+    typeof patched.attack_ce_on_reconstruction === 'number'
+      ? patched.attack_ce_on_reconstruction.toFixed(2)
+      : '-';
+
+  return (
+    <div className="analysis-prominent-metrics analysis-prominent-metrics--inversion">
+      <div className="prominent-item">
+        <div className="prominent-label">정상 분류 정확도 (Victim Acc)</div>
+        <div className="prominent-value">{victimAccPct}</div>
+      </div>
+      <div className="prominent-item">
+        <div className="prominent-label">복원 유사도 (Reconstruction SSIM)</div>
+        <div className="prominent-value danger">{ssimPct}</div>
+      </div>
+      <div className="prominent-item">
+        <div className="prominent-label">복원 오차 (Reconstruction MSE)</div>
+        <div className="prominent-value">{mseLabel}</div>
+      </div>
+      <div className="prominent-item">
+        <div className="prominent-label">오분류 손실 (Attack CE Loss)</div>
+        <div className="prominent-value">{ceLabel}</div>
       </div>
     </div>
   );

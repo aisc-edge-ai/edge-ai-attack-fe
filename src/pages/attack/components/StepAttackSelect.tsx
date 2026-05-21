@@ -4,16 +4,37 @@ import { Card, Icon, Tag } from '@blueprintjs/core';
 import { cn } from '@/lib/utils';
 import { isAttackTypeSupported } from '@/lib/constants';
 
+/**
+ * classification modelType 안에서 모델 ID → 노출할 attack 카테고리 ID 매핑.
+ * 같은 'classification' modelType 을 공유하는 MTC(MDL-MTC-001) 와 TrapMI(MDL-INV-001) 가
+ * 서로의 attack 카테고리를 보이지 않도록 client-side 필터링.
+ *
+ * mapping 에 없는 모델 ID 는 모든 카테고리 그대로 노출 (cctv/voice/imagenet 영향 없음).
+ */
+const MODEL_TO_ALLOWED_CATEGORIES: Record<string, readonly string[]> = {
+  'MDL-MTC-001': ['cat-inference'],
+  'MDL-INV-001': ['cat-inversion'],
+};
+
 export function StepAttackSelect() {
   const {
     selectedModelType,
+    selectedModelId,
     selectedAttackIds,
     toggleAttack,
     toggleCategory,
     setHoveredAttackId,
   } = useAttackWizardStore();
 
-  const { data: categories, isLoading } = useAttackTypes(selectedModelType);
+  const { data: allCategories, isLoading } = useAttackTypes(selectedModelType);
+
+  // selectedModelId 가 mapping 에 있으면 허용된 카테고리만, 없으면 전체 그대로.
+  const allowedCategoryIds = selectedModelId
+    ? MODEL_TO_ALLOWED_CATEGORIES[selectedModelId]
+    : undefined;
+  const categories = allowedCategoryIds
+    ? allCategories?.filter((c) => allowedCategoryIds.includes(c.id))
+    : allCategories;
 
   if (isLoading) {
     return (

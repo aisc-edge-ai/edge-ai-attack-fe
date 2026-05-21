@@ -1,9 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { resultsApi } from '@/api/results';
-import { getErrorMessage } from '@/api/client';
-import { AppToaster } from '@/lib/toaster';
-import { Intent } from '@blueprintjs/core';
 import { getAllMockResults, mergeWithMocks } from '@/lib/mock-providers';
+import { useMutationWithToast } from './use-mutation-with-toast';
+import { MESSAGES } from '@/lib/messages';
 import type { AttackResult, PaginatedResponse } from '@/types';
 
 /**
@@ -56,19 +55,8 @@ export function useResultSummary() {
 }
 
 export function useDeleteResult() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => resultsApi.deleteResult(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['results'] });
-    },
-    onError: async (error) => {
-      const toaster = await AppToaster;
-      toaster.show({
-        message: getErrorMessage(error, '결과 삭제에 실패했습니다.'),
-        intent: Intent.DANGER,
-        icon: 'error',
-      });
-    },
-  });
+  return useMutationWithToast(
+    (id: string) => resultsApi.deleteResult(id),
+    { errorFallback: MESSAGES.RESULT_DELETE_FAIL, invalidateKeys: [['results']] },
+  );
 }

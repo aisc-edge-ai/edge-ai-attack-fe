@@ -1,9 +1,11 @@
 import type { AttackResult } from '@/types';
 import { DetectionMetricsPdf } from './DetectionMetricsPdf';
 import { ImageNetMetricsPdf } from './ImageNetMetricsPdf';
+import { InversionMetricsPdf } from './InversionMetricsPdf';
 import { MtcAccuracyCardsPdf } from './MtcAccuracyCardsPdf';
 import { VoiceMetricsPdf } from './VoiceMetricsPdf';
 import { isImagenetResult } from '../helpers/isImagenetResult';
+import { isInversionResult } from '../helpers/isInversionResult';
 import { isVoiceResult } from '../helpers/isVoiceResult';
 
 interface MetricsStripPdfProps {
@@ -27,6 +29,9 @@ export function MetricsStripPdf({ result }: MetricsStripPdfProps) {
   }
   if (isImagenetResult(result)) {
     return <ImageNetMetricsPdf result={result} />;
+  }
+  if (isInversionResult(result)) {
+    return <InversionMetricsPdf result={result} />;
   }
   return <DetectionMetricsPdf result={result} />;
 }

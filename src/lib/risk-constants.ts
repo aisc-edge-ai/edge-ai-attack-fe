@@ -201,6 +201,53 @@ export const IMAGENET_RECOMMENDATIONS: Recommendation[] = [
   },
 ];
 
+/**
+ * TrapMI Model Inversion 전용 등급 기준.
+ * `successRate = reconstruction_ssim × 100%` — 높을수록 공격 성공 (원본 복원).
+ * none baseline ≈ 85% → vulnerable, trapmi defense ≈ 22% → safe.
+ */
+export const INVERSION_GRADE_CRITERIA: GradeCriterion[] = [
+  {
+    risk: 'safe',
+    label: '안전 (Safe)',
+    description:
+      'Reconstruction SSIM 30% 미만 — Model Inversion 공격자가 원본 이미지를 복원하지 못함. 민감 정보(얼굴/필기/숫자 등)가 intermediate feature 로부터 누출되지 않아 양호한 상태.',
+  },
+  {
+    risk: 'warning',
+    label: '경고 (Warning)',
+    description:
+      'Reconstruction SSIM 30~70% — 부분적 복원 가능. 원본의 일부 특성(윤곽/색상 분포 등)이 식별 가능한 수준으로 누출됨. TrapMI 또는 differentially-private SGD 등 추가 방어 적용 권장.',
+  },
+  {
+    risk: 'vulnerable',
+    label: '취약 (Vulnerable)',
+    description:
+      'Reconstruction SSIM 70% 이상 — 공격자가 원본 이미지를 거의 그대로 복원 가능. Split learning 환경에서 intermediate feature 만으로도 입력 데이터가 노출됨. 즉시 방어 메커니즘 도입 필요.',
+  },
+];
+
+export const INVERSION_RECOMMENDATIONS: Recommendation[] = [
+  {
+    num: '01',
+    title: 'TrapMI 방어 도입',
+    description:
+      'class-specific trap target 과 AutoGenerator 학습으로 reconstruction SSIM 을 0.85→0.22 수준으로 감소시킴. 정상 추론 정확도는 유지하면서 복원 공격 차단이 가능함.',
+  },
+  {
+    num: '02',
+    title: 'NoPeek / Differential Privacy',
+    description:
+      '대안 방어 기법으로 feature 와 입력 간 distance correlation 을 최소화하는 NoPeek 손실 항을 추가하거나, differentially-private SGD 로 noise 를 주입하여 reconstruction 난이도를 증가시킴.',
+  },
+  {
+    num: '03',
+    title: 'Split Point 후방 이동',
+    description:
+      'Client/Server 모델의 split layer 를 더 깊은 layer(2→3)로 이동시킴. Intermediate feature 의 abstraction 수준이 높아져 inversion attack 의 복원 품질이 자연스럽게 저하됨.',
+  },
+];
+
 function isImagenet(modelType: string | undefined): boolean {
   if (!modelType) return false;
   return modelType === 'imagenet' || modelType.startsWith('ImageNet');
@@ -216,11 +263,22 @@ function isVoice(modelType: string | undefined): boolean {
   return modelType === 'voice' || modelType.startsWith('음성 인식');
 }
 
+/**
+ * TrapMI 모델 역추출 공격 결과 판별 — backend 가 result row 의 `modelType` 을
+ * `'모델 역추출 공격'` 으로 발급. (요청 시점의 wizard modelType 은 'classification' 이지만
+ * 결과 row 단계에서 attack family 별 라벨로 분기된다.)
+ */
+function isInversion(modelType: string | undefined): boolean {
+  if (!modelType) return false;
+  return modelType.startsWith('모델 역추출');
+}
+
 /** modelType 에 맞는 등급 해석을 반환. 미지정/매칭 안 됨 → 객체 탐지 기본. */
 export function getGradeCriteria(modelType: string | undefined): GradeCriterion[] {
   if (isVoice(modelType)) return VOICE_GRADE_CRITERIA;
   if (isMtc(modelType)) return MTC_GRADE_CRITERIA;
   if (isImagenet(modelType)) return IMAGENET_GRADE_CRITERIA;
+  if (isInversion(modelType)) return INVERSION_GRADE_CRITERIA;
   return GRADE_CRITERIA;
 }
 
@@ -229,5 +287,6 @@ export function getRecommendations(modelType: string | undefined): Recommendatio
   if (isVoice(modelType)) return VOICE_RECOMMENDATIONS;
   if (isMtc(modelType)) return MTC_RECOMMENDATIONS;
   if (isImagenet(modelType)) return IMAGENET_RECOMMENDATIONS;
+  if (isInversion(modelType)) return INVERSION_RECOMMENDATIONS;
   return RECOMMENDATIONS;
 }

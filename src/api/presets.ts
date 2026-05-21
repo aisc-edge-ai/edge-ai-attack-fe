@@ -1,21 +1,7 @@
 import apiClient from './client';
+import { withMockFallback } from './with-mock-fallback';
 import type { Preset, PresetFormValues } from '@/types';
 import { usePresetStore } from '@/stores/presetStore';
-
-async function withMockFallback<T>(
-  fetcher: () => Promise<T>,
-  mockFn: () => T,
-  endpointName: string,
-): Promise<T> {
-  try {
-    return await fetcher();
-  } catch (error) {
-    if (import.meta.env.DEV) {
-      console.warn(`[presets] ${endpointName} → mock fallback`, error);
-    }
-    return mockFn();
-  }
-}
 
 export const presetsApi = {
   getPresets: (): Promise<Preset[]> =>

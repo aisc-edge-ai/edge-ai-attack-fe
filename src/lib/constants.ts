@@ -38,6 +38,8 @@ export const SUPPORTED_ATTACK_TYPE_IDS = [
   'atk-bim',
   'atk-contour-fgsm',
   'atk-contour-bim',
+  'atk-trapmi-none',
+  'atk-trapmi-defense',
 ] as const;
 
 export type SupportedModelType = (typeof SUPPORTED_MODEL_TYPES)[number];
@@ -66,6 +68,8 @@ export const ATTACK_TYPE_LABELS: Record<string, string> = {
   'atk-bim': 'BIM',
   'atk-contour-fgsm': 'Contour-FGSM',
   'atk-contour-bim': 'Contour-BIM',
+  'atk-trapmi-none': 'Model Inversion (No Defense)',
+  'atk-trapmi-defense': 'Model Inversion (TrapMI)',
 };
 
 export const MODEL_TYPE_LABELS: Record<string, string> = {
